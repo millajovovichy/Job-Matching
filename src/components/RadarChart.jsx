@@ -25,7 +25,7 @@ const DIMENSION_COLORS = {
 
 export default function RadarChart({ dimensions }) {
   const data = Object.entries(dimensions).map(([key, value]) => ({
-    dimension: DIMENSION_LABELS[key] || key,
+    dimension: `${DIMENSION_LABELS[key] || key} ${value.score}`,
     score: value.score,
     fullMark: 100,
     color: DIMENSION_COLORS[key] || '#94a3b8',

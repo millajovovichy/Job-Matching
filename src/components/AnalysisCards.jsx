@@ -1,8 +1,8 @@
 export default function AnalysisCards({ strengths, weaknesses, skillSuggestions }) {
   return (
-    <div className="w-full flex flex-col gap-2">
+    <div className="w-full flex flex-col md:flex-row gap-2">
       {/* 核心优势 - 绿色 */}
-      <div className="bg-green-50 rounded-lg p-3">
+      <div className="flex-1 min-w-0 bg-green-50 rounded-lg p-3">
         <h4 className="font-semibold text-xs text-green-700 mb-2 flex items-center gap-1">
           <i className="fas fa-check-circle"></i>
           核心优势
@@ -18,7 +18,7 @@ export default function AnalysisCards({ strengths, weaknesses, skillSuggestions 
       </div>
 
       {/* 短板分析 - 红色 */}
-      <div className="bg-red-50 rounded-lg p-3">
+      <div className="flex-1 min-w-0 bg-red-50 rounded-lg p-3">
         <h4 className="font-semibold text-xs text-red-700 mb-2 flex items-center gap-1">
           <i className="fas fa-triangle-exclamation"></i>
           短板分析
@@ -39,7 +39,7 @@ export default function AnalysisCards({ strengths, weaknesses, skillSuggestions 
       </div>
 
       {/* 技能补足建议 - 蓝色 */}
-      <div className="bg-blue-50 rounded-lg p-3">
+      <div className="flex-1 min-w-0 bg-blue-50 rounded-lg p-3">
         <h4 className="font-semibold text-xs text-blue-700 mb-2 flex items-center gap-1">
           <i className="fas fa-lightbulb"></i>
           技能补足建议
