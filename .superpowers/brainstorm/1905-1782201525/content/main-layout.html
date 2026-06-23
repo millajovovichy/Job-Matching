@@ -1,0 +1,207 @@
+<h2>主界面布局方案 — 简历-JD匹配工具</h2>
+<p class="subtitle">单页式：上方输入区，下方结果区。Demo数据预填充，上传后替换为真实结果。</p>
+
+<!-- ====== 方案 A ====== -->
+<div class="section">
+<h3>方案 A：左右分栏输入，结果纵向展开</h3>
+<div class="mockup">
+  <div class="mockup-header">输入流畅，结果逐段展示，适合深度分析场景</div>
+  <div class="mockup-body" style="background:#f8fafc;padding:20px;border-radius:8px;">
+
+    <!-- 顶部导航 -->
+    <div class="mock-nav" style="margin-bottom:16px;">🔍 简历JD匹配 | <span style="color:#94a3b8;">配置API Key</span> <span style="float:right;">⚙️ 设置</span></div>
+
+    <!-- 输入区 - 左右分栏 -->
+    <div style="display:flex;gap:16px;margin-bottom:20px;">
+      <div style="flex:1;background:#fff;border:2px dashed #cbd5e1;border-radius:8px;padding:16px;text-align:center;">
+        <div style="font-size:24px;margin-bottom:4px;">📄</div>
+        <div style="font-weight:600;margin-bottom:4px;">上传简历</div>
+        <div style="font-size:12px;color:#94a3b8;">PDF / 文本，拖拽或点击上传</div>
+        <div style="margin-top:8px;font-size:11px;color:#3b82f6;">已上传: senior_backend_resume.pdf</div>
+      </div>
+      <div style="flex:1;background:#fff;border:2px solid #e2e8f0;border-radius:8px;padding:16px;">
+        <div style="font-weight:600;margin-bottom:8px;">📋 粘贴岗位描述 (JD)</div>
+        <div style="background:#f1f5f9;border-radius:4px;padding:10px;font-size:12px;color:#475569;min-height:80px;max-height:120px;overflow:hidden;">
+          高级Java开发工程师<br>岗位职责：负责支付系统架构设计与优化...<br>要求：5年以上Java开发经验，精通Spring Cloud...
+        </div>
+      </div>
+    </div>
+
+    <!-- 匹配按钮 -->
+    <div style="text-align:center;margin-bottom:24px;">
+      <button class="mock-button" style="background:#3b82f6;color:#fff;padding:10px 32px;border:none;border-radius:6px;font-size:15px;">🔍 开始匹配分析</button>
+    </div>
+
+    <!-- 结果区 -->
+    <div style="background:#fff;border-radius:8px;border:1px solid #e2e8f0;overflow:hidden;">
+      <div style="background:#3b82f6;color:#fff;padding:10px 16px;font-weight:600;">匹配结果</div>
+      <div style="padding:16px;">
+        <!-- 总分 + 雷达图 左右 -->
+        <div style="display:flex;gap:20px;margin-bottom:20px;">
+          <div style="text-align:center;min-width:100px;">
+            <div style="font-size:48px;font-weight:700;color:#3b82f6;">78%</div>
+            <div style="font-size:13px;color:#64748b;">综合匹配度</div>
+          </div>
+          <div style="flex:1;display:flex;align-items:center;justify-content:center;background:#f1f5f9;border-radius:8px;min-height:180px;">
+            <span style="color:#94a3b8;">▸ 雷达图区域 (5维度)</span>
+          </div>
+        </div>
+
+        <!-- 5维度条形图 -->
+        <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:20px;">
+          <div><span style="font-size:13px;">项目经验 35%</span> <div style="background:#e2e8f0;height:6px;border-radius:3px;"><div style="background:#22c55e;width:82%;height:6px;border-radius:3px;"></div></div></div>
+          <div><span style="font-size:13px;">技术技能 28%</span> <div style="background:#e2e8f0;height:6px;border-radius:3px;"><div style="background:#3b82f6;width:75%;height:6px;border-radius:3px;"></div></div></div>
+          <div><span style="font-size:13px;">领域/行业 15%</span> <div style="background:#e2e8f0;height:6px;border-radius:3px;"><div style="background:#f59e0b;width:68%;height:6px;border-radius:3px;"></div></div></div>
+          <div><span style="font-size:13px;">软实力 12%</span> <div style="background:#e2e8f0;height:6px;border-radius:3px;"><div style="background:#8b5cf6;width:71%;height:6px;border-radius:3px;"></div></div></div>
+          <div><span style="font-size:13px;">学历背景 10%</span> <div style="background:#e2e8f0;height:6px;border-radius:3px;"><div style="background:#ec4899;width:90%;height:6px;border-radius:3px;"></div></div></div>
+        </div>
+
+        <!-- 优势 + 短板 左右分栏 -->
+        <div style="display:flex;gap:20px;margin-bottom:20px;">
+          <div style="flex:1;background:#f0fdf4;border-radius:8px;padding:14px;">
+            <div style="font-weight:600;color:#166534;margin-bottom:8px;">✅ 核心优势</div>
+            <ul style="margin:0;padding-left:16px;font-size:13px;color:#166534;">
+              <li>支付系统架构设计经验高度匹配</li>
+              <li>Spring Cloud技术栈完全覆盖</li>
+              <li>带领3人团队经验符合TL要求</li>
+            </ul>
+          </div>
+          <div style="flex:1;background:#fef2f2;border-radius:8px;padding:14px;">
+            <div style="font-weight:600;color:#991b1b;margin-bottom:8px;">⚠️ 短板分析</div>
+            <ul style="margin:0;padding-left:16px;font-size:13px;color:#991b1b;">
+              <li>缺少Kubernetes实战经验 (必备)</li>
+              <li>大流量高并发经验不足</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- 技能建议 -->
+        <div style="background:#eff6ff;border-radius:8px;padding:14px;">
+          <div style="font-weight:600;color:#1e40af;margin-bottom:8px;">💡 技能补足建议</div>
+          <ul style="margin:0;padding-left:16px;font-size:13px;color:#1e40af;">
+            <li><b>Kubernetes</b>: 推荐 CKAD 认证 + Minikube 动手实验</li>
+            <li><b>高并发设计</b>: 《设计数据密集型应用》第5-9章</li>
+          </ul>
+        </div>
+
+        <div style="margin-top:16px;padding:12px;background:#f8fafc;border-radius:6px;font-size:13px;color:#475569;border-left:3px solid #3b82f6;">
+          <b>综合评语：</b>候选人在Java技术栈和支付领域经验与岗位高度匹配，项目经验扎实，学历达标。主要差距在云原生基础设施（K8s）和大规模分布式系统经验，补足后可达到85%+匹配度。
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ====== 方案 B ====== -->
+<div class="section">
+<h3>方案 B：步骤式向导（3步切换）</h3>
+<div class="mockup">
+  <div class="mockup-header">分步操作，每步互不干扰，适合专注输入的场景</div>
+  <div class="mockup-body" style="background:#f8fafc;padding:20px;border-radius:8px;">
+
+    <!-- 步骤指示器 -->
+    <div style="display:flex;justify-content:center;gap:8px;margin-bottom:20px;">
+      <span style="background:#3b82f6;color:#fff;padding:6px 16px;border-radius:20px;font-size:13px;">① 上传简历</span>
+      <span style="color:#cbd5e1;">→</span>
+      <span style="background:#e2e8f0;color:#64748b;padding:6px 16px;border-radius:20px;font-size:13px;">② 粘贴JD</span>
+      <span style="color:#cbd5e1;">→</span>
+      <span style="background:#e2e8f0;color:#64748b;padding:6px 16px;border-radius:20px;font-size:13px;">③ 查看结果</span>
+    </div>
+
+    <div style="background:#fff;border-radius:8px;padding:20px;text-align:center;min-height:200px;display:flex;align-items:center;justify-content:center;flex-direction:column;">
+      <div style="font-size:32px;margin-bottom:8px;">📄</div>
+      <div style="font-weight:600;margin-bottom:4px;">拖拽简历文件到此处</div>
+      <div style="font-size:13px;color:#94a3b8;margin-bottom:12px;">支持 PDF、TXT、DOCX 格式</div>
+      <button class="mock-button" style="background:#3b82f6;color:#fff;padding:8px 20px;border:none;border-radius:4px;">选择文件</button>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ====== 方案 C ====== -->
+<div class="section">
+<h3>方案 C：上下紧凑单页（推荐）</h3>
+<div class="mockup">
+  <div class="mockup-header">所有操作在一个视口完成，Demo数据可见，上传后即时替换</div>
+  <div class="mockup-body" style="background:#f8fafc;padding:20px;border-radius:8px;">
+
+    <div class="mock-nav" style="margin-bottom:16px;">🔍 简历JD匹配 | <span style="color:#3b82f6;">API Key: sk-****a1b2</span> <span style="float:right;">💡 Demo演示数据</span></div>
+
+    <!-- 紧凑输入栏 -->
+    <div style="display:flex;gap:12px;align-items:center;margin-bottom:16px;flex-wrap:wrap;">
+      <input class="mock-input" placeholder="📄 点击上传简历 (PDF/文本)" style="flex:2;min-width:180px;">
+      <input class="mock-input" placeholder="📋 粘贴岗位JD..." style="flex:3;min-width:250px;">
+      <button class="mock-button" style="background:#3b82f6;color:#fff;padding:8px 20px;border:none;border-radius:6px;white-space:nowrap;">🔍 匹配</button>
+    </div>
+
+    <!-- 结果区 -- 紧凑布局 -->
+    <div style="background:#fff;border-radius:8px;border:1px solid #e2e8f0;padding:20px;">
+
+      <!-- 顶行：总分 + 雷达图 + 维度条 -->
+      <div style="display:flex;gap:24px;align-items:flex-start;flex-wrap:wrap;">
+        <!-- 总分圆环 -->
+        <div style="text-align:center;min-width:80px;">
+          <div style="width:90px;height:90px;border-radius:50%;border:6px solid #3b82f6;display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:700;color:#3b82f6;margin:0 auto 4px;">78</div>
+          <div style="font-size:12px;color:#64748b;">匹配度</div>
+        </div>
+
+        <!-- 雷达图区域 -->
+        <div style="flex:1;min-width:180px;display:flex;align-items:center;justify-content:center;background:#f8fafc;border-radius:8px;min-height:160px;">
+          <span style="color:#94a3b8;">⭐ 五维雷达图</span>
+        </div>
+
+        <!-- 维度条形 -->
+        <div style="flex:1;min-width:200px;display:flex;flex-direction:column;gap:6px;">
+          <div style="display:flex;align-items:center;gap:8px;"><span style="font-size:12px;width:60px;">项目经验</span><div style="flex:1;background:#e2e8f0;height:6px;border-radius:3px;"><div style="background:#22c55e;width:82%;height:6px;border-radius:3px;"></div></div><span style="font-size:12px;color:#22c55e;">82</span></div>
+          <div style="display:flex;align-items:center;gap:8px;"><span style="font-size:12px;width:60px;">技术技能</span><div style="flex:1;background:#e2e8f0;height:6px;border-radius:3px;"><div style="background:#3b82f6;width:75%;height:6px;border-radius:3px;"></div></div><span style="font-size:12px;color:#3b82f6;">75</span></div>
+          <div style="display:flex;align-items:center;gap:8px;"><span style="font-size:12px;width:60px;">领域/行业</span><div style="flex:1;background:#e2e8f0;height:6px;border-radius:3px;"><div style="background:#f59e0b;width:68%;height:6px;border-radius:3px;"></div></div><span style="font-size:12px;color:#f59e0b;">68</span></div>
+          <div style="display:flex;align-items:center;gap:8px;"><span style="font-size:12px;width:60px;">软实力</span><div style="flex:1;background:#e2e8f0;height:6px;border-radius:3px;"><div style="background:#8b5cf6;width:71%;height:6px;border-radius:3px;"></div></div><span style="font-size:12px;color:#8b5cf6;">71</span></div>
+          <div style="display:flex;align-items:center;gap:8px;"><span style="font-size:12px;width:60px;">学历背景</span><div style="flex:1;background:#e2e8f0;height:6px;border-radius:3px;"><div style="background:#ec4899;width:90%;height:6px;border-radius:3px;"></div></div><span style="font-size:12px;color:#ec4899;">90</span></div>
+        </div>
+      </div>
+
+      <!-- 分隔 -->
+      <div style="border-top:1px solid #e2e8f0;margin:16px 0;"></div>
+
+      <!-- 三栏：优势 / 短板 / 建议 -->
+      <div style="display:flex;gap:14px;flex-wrap:wrap;">
+        <div style="flex:1;min-width:180px;background:#f0fdf4;border-radius:8px;padding:12px;">
+          <div style="font-weight:600;color:#166534;font-size:13px;margin-bottom:6px;">✅ 核心优势</div>
+          <div style="font-size:12px;color:#166534;">支付架构经验匹配<br>Spring Cloud全覆盖<br>团队管理经验</div>
+        </div>
+        <div style="flex:1;min-width:180px;background:#fef2f2;border-radius:8px;padding:12px;">
+          <div style="font-weight:600;color:#991b1b;font-size:13px;margin-bottom:6px;">⚠️ 短板</div>
+          <div style="font-size:12px;color:#991b1b;">缺失K8s实战经验<br>高并发经验不足</div>
+        </div>
+        <div style="flex:1;min-width:180px;background:#eff6ff;border-radius:8px;padding:12px;">
+          <div style="font-weight:600;color:#1e40af;font-size:13px;margin-bottom:6px;">💡 补足建议</div>
+          <div style="font-size:12px;color:#1e40af;">K8s: CKAD认证+动手实验<br>高并发: DDIA 第5-9章</div>
+        </div>
+      </div>
+
+      <!-- 综合评语 -->
+      <div style="margin-top:14px;padding:10px 14px;background:#f8fafc;border-radius:6px;font-size:12px;color:#475569;border-left:3px solid #3b82f6;">
+        候选人在Java技术栈和支付领域与岗位高度匹配。主要差距在K8s和大规模分布式经验，补足后可达85%+。
+      </div>
+    </div>
+
+  </div>
+</div>
+</div>
+
+<div class="section">
+<h3>三方案对比</h3>
+<div class="pros-cons">
+  <div class="pros"><h4>方案 C 优势</h4><ul>
+    <li>一屏完成所有操作，零页面跳转</li>
+    <li>Demo数据直接展示，上手即看到完整效果</li>
+    <li>上传后即时对比替换，交互最流畅</li>
+    <li>API Key配置在顶栏，不打断主流程</li>
+  </ul></div>
+  <div class="cons"><h4>注意事项</h4><ul>
+    <li>信息密度较高，需做好响应式适配</li>
+    <li>移动端需拆分为纵向堆叠</li>
+  </ul></div>
+</div>
+</div>

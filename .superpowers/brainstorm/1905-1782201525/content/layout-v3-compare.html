@@ -1,0 +1,345 @@
+<h2>三版布局对比 — 输入区放大 + 雷达图信息重构</h2>
+<p class="subtitle">共性：简历支持 PDF上传 / 文本输入两种模式；雷达图上直接标注维度名和分数；综合评语置于评分环下方</p>
+
+<!-- ========== 方案 1 ========== -->
+<div class="section">
+<h3>方案 1 — 上下等宽双卡片输入 · 结果对称三列</h3>
+<div class="mockup">
+  <div class="mockup-header">输入区各占半行、空间充裕；结果区 评分环→卡片→雷达图 横向三等分</div>
+  <div class="mockup-body" style="background:#f8fafc;padding:16px;border-radius:8px;">
+
+    <!-- 顶栏 -->
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+      <div style="font-weight:700;font-size:15px;">🔍 简历 × JD 匹配</div>
+      <div style="font-size:10px;padding:2px 8px;background:#fef3c7;color:#92400e;border-radius:10px;">📋 Demo</div>
+    </div>
+
+    <!-- 输入区 - 等宽双卡片，各行独立 -->
+    <div style="display:flex;gap:12px;margin-bottom:14px;">
+      <!-- 简历卡片 -->
+      <div style="flex:1;background:#fff;border:2px dashed #cbd5e1;border-radius:8px;padding:14px;">
+        <div style="font-weight:600;font-size:13px;margin-bottom:8px;display:flex;align-items:center;gap:6px;">
+          <span>📄 简历</span>
+          <span style="font-size:10px;background:#e0f2fe;color:#0369a1;padding:2px 7px;border-radius:10px;">PDF</span>
+          <span style="font-size:10px;background:#f1f5f9;color:#64748b;padding:2px 7px;border-radius:10px;">文本</span>
+        </div>
+        <div style="border:1px solid #e2e8f0;border-radius:6px;padding:10px;min-height:100px;font-size:12px;color:#94a3b8;overflow:hidden;">
+          拖拽PDF文件到此处，或点击上传<br><br>
+          ── 或直接粘贴简历文本 ──<br><br>
+          <span style="color:#475569;">张三 | 5年Java后端开发<br>精通 Spring Cloud、MySQL、Redis...<br>主导支付系统架构升级，带领3人团队...</span>
+        </div>
+        <div style="text-align:right;margin-top:6px;font-size:10px;color:#3b82f6;">已输入 284 字</div>
+      </div>
+
+      <!-- JD卡片 -->
+      <div style="flex:1;background:#fff;border:1px solid #e2e8f0;border-radius:8px;padding:14px;">
+        <div style="font-weight:600;font-size:13px;margin-bottom:8px;">📋 岗位描述 (JD)</div>
+        <div style="border:1px solid #e2e8f0;border-radius:6px;padding:10px;min-height:100px;font-size:12px;color:#94a3b8;overflow:hidden;">
+          <span style="color:#475569;">高级Java开发工程师<br>岗位职责：<br>1. 负责支付系统架构设计与优化<br>2. 参与核心交易链路开发<br>要求：5年以上Java经验，精通Spring Cloud、K8s...</span>
+        </div>
+        <div style="text-align:right;margin-top:6px;font-size:10px;color:#3b82f6;">已输入 156 字</div>
+      </div>
+    </div>
+
+    <div style="text-align:center;margin-bottom:14px;">
+      <button style="background:#3b82f6;color:#fff;padding:8px 24px;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;">🔍 开始匹配分析</button>
+    </div>
+
+    <!-- 结果区 - 三等分 -->
+    <div style="display:flex;gap:12px;flex-wrap:wrap;">
+      <!-- 列1: 评分环 + 评语 -->
+      <div style="flex:0.8;min-width:160px;background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:16px;display:flex;flex-direction:column;align-items:center;">
+        <div style="width:90px;height:90px;border-radius:50%;border:6px solid #3b82f6;display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:700;color:#3b82f6;">78</div>
+        <div style="font-size:11px;color:#64748b;margin-top:4px;">综合匹配度</div>
+        <div style="margin-top:12px;padding:10px;background:#f8fafc;border-radius:6px;font-size:11px;color:#475569;line-height:1.6;border-left:3px solid #3b82f6;">
+          Java技术栈与支付领域高度匹配，项目经验扎实。主要差距在K8s和高并发经验，补足后预计可达85%+。
+        </div>
+      </div>
+
+      <!-- 列2: 优势+短板+建议 -->
+      <div style="flex:1.2;min-width:280px;display:flex;flex-direction:column;gap:10px;">
+        <div style="background:#f0fdf4;border-radius:8px;padding:10px 14px;">
+          <div style="font-weight:600;font-size:12px;color:#166534;margin-bottom:5px;">✅ 核心优势</div>
+          <div style="font-size:11px;color:#166534;display:flex;flex-direction:column;gap:3px;">
+            <div>• 支付系统架构设计经验高度匹配</div>
+            <div>• Spring Cloud技术栈完全覆盖</div>
+            <div>• 3人团队管理经验符合要求</div>
+          </div>
+        </div>
+        <div style="background:#fef2f2;border-radius:8px;padding:10px 14px;">
+          <div style="font-weight:600;font-size:12px;color:#991b1b;margin-bottom:5px;">⚠️ 短板</div>
+          <div style="font-size:11px;color:#991b1b;display:flex;flex-direction:column;gap:3px;">
+            <div>• K8s实战经验缺失 <span style="background:#fee2e2;padding:1px 5px;border-radius:3px;font-size:10px;">必备</span></div>
+            <div>• 大流量高并发经验不足</div>
+          </div>
+        </div>
+        <div style="background:#eff6ff;border-radius:8px;padding:10px 14px;">
+          <div style="font-weight:600;font-size:12px;color:#1e40af;margin-bottom:5px;">💡 技能补足建议</div>
+          <div style="font-size:11px;color:#1e40af;display:flex;flex-direction:column;gap:3px;">
+            <div>• K8s: CKAD认证 + Minikube动手实验</div>
+            <div>• 高并发: DDIA 第5-9章</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 列3: 雷达图（维度标注直接在图上） -->
+      <div style="flex:1;min-width:220px;background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:14px;display:flex;align-items:center;justify-content:center;">
+        <div style="text-align:center;width:100%;">
+          <div style="position:relative;width:200px;height:200px;margin:0 auto;display:flex;align-items:center;justify-content:center;">
+            <!-- 模拟五边形雷达图 -->
+            <svg viewBox="0 0 200 200" style="width:100%;height:100%;">
+              <polygon points="100,15 180,75 165,165 35,165 20,75" fill="rgba(59,130,246,0.1)" stroke="#3b82f6" stroke-width="1.5"/>
+              <polygon points="100,40 155,80 145,145 55,145 45,80" fill="rgba(59,130,246,0.2)" stroke="#3b82f6" stroke-width="1.5"/>
+              <polygon points="100,45 150,80 142,140 58,140 50,80" fill="rgba(59,130,246,0.3)" stroke="#2563eb" stroke-width="2"/>
+              <line x1="100" y1="100" x2="100" y2="15" stroke="#e2e8f0" stroke-width="0.5"/>
+              <line x1="100" y1="100" x2="180" y2="75" stroke="#e2e8f0" stroke-width="0.5"/>
+              <line x1="100" y1="100" x2="165" y2="165" stroke="#e2e8f0" stroke-width="0.5"/>
+              <line x1="100" y1="100" x2="35" y2="165" stroke="#e2e8f0" stroke-width="0.5"/>
+              <line x1="100" y1="100" x2="20" y2="75" stroke="#e2e8f0" stroke-width="0.5"/>
+            </svg>
+          </div>
+          <div style="display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin-top:6px;">
+            <span style="font-size:10px;color:#22c55e;">● 项目经验 82</span>
+            <span style="font-size:10px;color:#3b82f6;">● 技术技能 75</span>
+            <span style="font-size:10px;color:#f59e0b;">● 领域 68</span>
+            <span style="font-size:10px;color:#8b5cf6;">● 软实力 71</span>
+            <span style="font-size:10px;color:#ec4899;">● 学历 90</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ========== 方案 2 ========== -->
+<div class="section">
+<h3>方案 2 — 宽输入区 · 结果核心指标突出、卡片下置</h3>
+<div class="mockup">
+  <div class="mockup-header">顶部大输入区占据视觉重心，结果区缩小为指标仪表板</div>
+  <div class="mockup-body" style="background:#f8fafc;padding:16px;border-radius:8px;">
+
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+      <div style="font-weight:700;font-size:15px;">🔍 简历 × JD 匹配</div>
+      <div style="font-size:10px;padding:2px 8px;background:#fef3c7;color:#92400e;border-radius:10px;">📋 Demo</div>
+    </div>
+
+    <!-- 输入区 - 上方两个大卡片 -->
+    <div style="display:flex;gap:12px;margin-bottom:14px;">
+      <div style="flex:1;background:#fff;border:2px dashed #cbd5e1;border-radius:10px;padding:18px;">
+        <div style="font-weight:600;font-size:14px;margin-bottom:10px;">📄 上传简历</div>
+        <div style="display:flex;gap:8px;margin-bottom:10px;">
+          <span style="font-size:11px;padding:4px 12px;background:#3b82f6;color:#fff;border-radius:14px;cursor:pointer;">📎 上传 PDF</span>
+          <span style="font-size:11px;padding:4px 12px;background:#f1f5f9;color:#64748b;border-radius:14px;cursor:pointer;">✏️ 粘贴文本</span>
+        </div>
+        <div style="border:1px solid #e2e8f0;border-radius:6px;padding:14px;min-height:80px;font-size:12px;color:#475569;">
+          张三 | 5年Java后端 | 支付系统架构<br>
+          精通Spring Cloud、MySQL、Redis、RabbitMQ<br>
+          主导日均千万级交易支付系统升级...
+        </div>
+      </div>
+      <div style="flex:1;background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:18px;">
+        <div style="font-weight:600;font-size:14px;margin-bottom:10px;">📋 岗位描述 (JD)</div>
+        <div style="border:1px solid #e2e8f0;border-radius:6px;padding:14px;min-height:80px;font-size:12px;color:#475569;">
+          高级Java开发工程师 — 支付平台部<br>
+          负责核心交易链路设计与优化<br>
+          要求：5年+Java，精通Spring Cloud、K8s...
+        </div>
+      </div>
+    </div>
+
+    <div style="text-align:center;margin-bottom:14px;">
+      <button style="background:#3b82f6;color:#fff;padding:9px 28px;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;">🔍 开始匹配分析</button>
+    </div>
+
+    <!-- 结果区 - 紧凑两行 -->
+    <!-- 行1: 评分环 + 雷达图 并排 -->
+    <div style="display:flex;gap:14px;align-items:center;margin-bottom:12px;">
+      <div style="text-align:center;min-width:120px;background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:16px;">
+        <div style="width:80px;height:80px;border-radius:50%;border:5px solid #3b82f6;display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:700;color:#3b82f6;margin:0 auto 6px;">78</div>
+        <div style="font-size:11px;color:#64748b;">综合匹配度</div>
+        <div style="margin-top:10px;font-size:10px;color:#475569;line-height:1.5;padding:8px;background:#f8fafc;border-radius:6px;">
+          Java与支付领域高度匹配，主要差距在K8s和高并发经验，补足后可达85%+。
+        </div>
+      </div>
+
+      <div style="flex:1;background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:14px;display:flex;align-items:center;gap:20px;">
+        <!-- 雷达图 -->
+        <div style="min-width:180px;height:180px;display:flex;align-items:center;justify-content:center;">
+          <svg viewBox="0 0 200 200" style="width:170px;height:170px;">
+            <polygon points="100,15 180,75 165,165 35,165 20,75" fill="rgba(59,130,246,0.08)" stroke="#cbd5e1" stroke-width="1"/>
+            <polygon points="100,35 160,72 152,152 48,152 40,72" fill="rgba(59,130,246,0.15)" stroke="#93c5fd" stroke-width="1"/>
+            <polygon points="100,42 155,72 148,142 52,142 45,72" fill="rgba(59,130,246,0.25)" stroke="#3b82f6" stroke-width="2"/>
+            <text x="100" y="8" text-anchor="middle" font-size="11" fill="#22c55e" font-weight="600">项目经验 82</text>
+            <text x="192" y="75" text-anchor="start" font-size="11" fill="#3b82f6" font-weight="600">技术技能 75</text>
+            <text x="168" y="180" text-anchor="middle" font-size="11" fill="#f59e0b" font-weight="600">领域 68</text>
+            <text x="32" y="180" text-anchor="middle" font-size="11" fill="#8b5cf6" font-weight="600">软实力 71</text>
+            <text x="0" y="75" text-anchor="end" font-size="11" fill="#ec4899" font-weight="600">学历 90</text>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- 行2: 三卡片一字排开 -->
+    <div style="display:flex;gap:10px;">
+      <div style="flex:1;background:#f0fdf4;border-radius:8px;padding:10px 14px;">
+        <div style="font-weight:600;font-size:12px;color:#166534;margin-bottom:4px;">✅ 核心优势</div>
+        <div style="font-size:10px;color:#166534;">支付架构经验 · Spring Cloud全覆盖 · 团队管理</div>
+      </div>
+      <div style="flex:1;background:#fef2f2;border-radius:8px;padding:10px 14px;">
+        <div style="font-weight:600;font-size:12px;color:#991b1b;margin-bottom:4px;">⚠️ 短板</div>
+        <div style="font-size:10px;color:#991b1b;">K8s实战缺失(必备) · 高并发经验不足</div>
+      </div>
+      <div style="flex:1;background:#eff6ff;border-radius:8px;padding:10px 14px;">
+        <div style="font-weight:600;font-size:12px;color:#1e40af;margin-bottom:4px;">💡 补足建议</div>
+        <div style="font-size:10px;color:#1e40af;">K8s: CKAD+动手实验 · 高并发: DDIA第5-9章</div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ========== 方案 3 ========== -->
+<div class="section">
+<h3>方案 3（推荐）— 输入区分层卡片 · 结果不对称布局 · 信息密度最高</h3>
+<div class="mockup">
+  <div class="mockup-header">综合方案1+2优点：输入区宽大清晰、结果区信息层次分明、全部单屏</div>
+  <div class="mockup-body" style="background:#f8fafc;padding:16px;border-radius:8px;">
+
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+      <div style="font-weight:700;font-size:15px;">🔍 简历 × JD 匹配</div>
+      <div style="font-size:10px;padding:2px 8px;background:#fef3c7;color:#92400e;border-radius:10px;">📋 Demo</div>
+    </div>
+
+    <!-- 输入区 - 上下双层卡片（与方案1类似的宽卡片） -->
+    <div style="display:flex;gap:12px;margin-bottom:12px;">
+      <div style="flex:1;background:#fff;border:2px dashed #cbd5e1;border-radius:10px;padding:16px;">
+        <div style="font-weight:600;font-size:13px;margin-bottom:8px;">📄 简历</div>
+        <div style="display:flex;gap:6px;margin-bottom:10px;">
+          <span style="font-size:10px;padding:3px 10px;background:#3b82f6;color:#fff;border-radius:12px;">📎 PDF上传</span>
+          <span style="font-size:10px;padding:3px 10px;background:#f1f5f9;color:#64748b;border-radius:12px;">✏️ 文本输入</span>
+        </div>
+        <div style="background:#f8fafc;border-radius:6px;padding:10px;font-size:12px;color:#475569;min-height:85px;line-height:1.6;">
+          张三 | 5年Java后端开发<br>
+          精通：Spring Cloud、MySQL、Redis、RabbitMQ<br>
+          经历：主导支付系统架构升级，带领3人团队...
+        </div>
+      </div>
+      <div style="flex:1;background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:16px;">
+        <div style="font-weight:600;font-size:13px;margin-bottom:8px;">📋 岗位描述</div>
+        <div style="background:#f8fafc;border-radius:6px;padding:10px;font-size:12px;color:#475569;min-height:85px;line-height:1.6;">
+          高级Java开发工程师 — 支付平台部<br>
+          负责核心交易链路设计与优化<br>
+          要求：5年+Java，精通Spring Cloud、K8s...
+        </div>
+      </div>
+    </div>
+
+    <button style="display:block;margin:0 auto 12px;background:#3b82f6;color:#fff;padding:8px 28px;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;">🔍 开始匹配分析</button>
+
+    <!-- 结果区 - 不对称布局 -->
+    <div style="display:flex;gap:12px;flex-wrap:wrap;">
+      <!-- 左列: 评分环 + 评语（窄列） -->
+      <div style="flex:0.6;min-width:140px;background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:16px;display:flex;flex-direction:column;align-items:center;">
+        <div style="width:80px;height:80px;border-radius:50%;border:5px solid #3b82f6;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:700;color:#3b82f6;">78</div>
+        <div style="font-size:11px;color:#64748b;margin-top:2px;margin-bottom:12px;">综合匹配度</div>
+        <div style="font-size:10px;color:#475569;line-height:1.6;padding:10px;background:#f8fafc;border-radius:6px;border-left:3px solid #3b82f6;">
+          Java与支付领域高度匹配，项目经验扎实。主要差距在K8s和高并发经验，补足后预计可达85%+。
+        </div>
+      </div>
+
+      <!-- 中列: 雷达图（维度和分数直接标注在图上） -->
+      <div style="flex:0.9;min-width:200px;background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:10px;display:flex;align-items:center;justify-content:center;">
+        <svg viewBox="0 0 220 220" style="width:200px;height:200px;">
+          <!-- 背景网格 -->
+          <polygon points="110,12 200,78 182,182 38,182 20,78" fill="none" stroke="#e2e8f0" stroke-width="0.5"/>
+          <polygon points="110,35 180,76 166,166 54,166 40,76" fill="rgba(59,130,246,0.06)" stroke="#e2e8f0" stroke-width="0.5"/>
+          <polygon points="110,50 165,73 155,155 65,155 55,73" fill="rgba(59,130,246,0.12)" stroke="#94a3b8" stroke-width="0.5"/>
+          <!-- 数据层 -->
+          <polygon points="110,42 170,72 158,142 62,142 50,72" fill="rgba(59,130,246,0.2)" stroke="#3b82f6" stroke-width="2"/>
+          <!-- 数据点 -->
+          <circle cx="110" cy="42" r="4" fill="#22c55e"/>
+          <circle cx="170" cy="72" r="4" fill="#3b82f6"/>
+          <circle cx="158" cy="142" r="4" fill="#f59e0b"/>
+          <circle cx="62" cy="142" r="4" fill="#8b5cf6"/>
+          <circle cx="50" cy="72" r="4" fill="#ec4899"/>
+          <!-- 维度标签(五角顶点外) -->
+          <text x="110" y="8" text-anchor="middle" font-size="12" fill="#22c55e" font-weight="700">项目经验</text>
+          <text x="110" y="22" text-anchor="middle" font-size="16" fill="#22c55e" font-weight="700">82</text>
+          <text x="212" y="78" text-anchor="start" font-size="12" fill="#3b82f6" font-weight="700">技术技能</text>
+          <text x="212" y="92" text-anchor="start" font-size="15" fill="#3b82f6" font-weight="700">75</text>
+          <text x="182" y="198" text-anchor="middle" font-size="12" fill="#f59e0b" font-weight="700">领域/行业</text>
+          <text x="182" y="212" text-anchor="middle" font-size="14" fill="#f59e0b" font-weight="700">68</text>
+          <text x="38" y="198" text-anchor="middle" font-size="12" fill="#8b5cf6" font-weight="700">软实力</text>
+          <text x="38" y="212" text-anchor="middle" font-size="14" fill="#8b5cf6" font-weight="700">71</text>
+          <text x="0" y="78" text-anchor="end" font-size="12" fill="#ec4899" font-weight="700">学历背景</text>
+          <text x="0" y="92" text-anchor="end" font-size="14" fill="#ec4899" font-weight="700">90</text>
+        </svg>
+      </div>
+
+      <!-- 右列: 优势+短板+建议 纵向堆叠 -->
+      <div style="flex:1.1;min-width:220px;display:flex;flex-direction:column;gap:8px;">
+        <div style="background:#f0fdf4;border-radius:8px;padding:10px 14px;">
+          <div style="font-weight:600;font-size:12px;color:#166534;margin-bottom:4px;">✅ 核心优势</div>
+          <div style="font-size:11px;color:#166534;line-height:1.5;">
+            支付架构经验高度匹配 · Spring Cloud技术栈全覆盖 · 3人团队管理经验符合要求
+          </div>
+        </div>
+        <div style="background:#fef2f2;border-radius:8px;padding:10px 14px;">
+          <div style="font-weight:600;font-size:12px;color:#991b1b;margin-bottom:4px;">⚠️ 短板分析</div>
+          <div style="font-size:11px;color:#991b1b;line-height:1.5;">
+            K8s实战经验缺失 <span style="background:#fee2e2;padding:1px 5px;border-radius:3px;font-size:10px;">必备</span> · 大流量高并发经验不足 → 影响项目经验分-4
+          </div>
+        </div>
+        <div style="background:#eff6ff;border-radius:8px;padding:10px 14px;">
+          <div style="font-weight:600;font-size:12px;color:#1e40af;margin-bottom:4px;">💡 技能补足建议</div>
+          <div style="font-size:11px;color:#1e40af;line-height:1.5;">
+            ① K8s: CKAD认证课程 → Minikube本地集群 → 将个人项目容器化<br>
+            ② 高并发: DDIA 第5-9章 → 极客时间专栏
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<div class="section">
+<h3>三方案核心差异</h3>
+<div class="pros-cons">
+  <div class="pros"><h4>方案1 特点</h4><ul>
+    <li>输入区双卡片 + 结果横向三等分，结构对称清晰</li>
+    <li>雷达图独立一列，图表空间充裕</li>
+    <li>优势/短板/建议纵向堆叠在中列，阅读顺序自然</li>
+  </ul></div>
+  <div class="cons"><h4>方案1 不足</h4><ul>
+    <li>三列总宽较大，小屏适配需要重排</li>
+    <li>评分环所在列利用率偏低（下方评语区较空）</li>
+  </ul></div>
+</div>
+
+<div class="pros-cons">
+  <div class="pros"><h4>方案2 特点</h4><ul>
+    <li>输入区最大气，上传体验好</li>
+    <li>PDF/文本切换用标签页，交互直观</li>
+    <li>结果区紧凑，聚焦核心指标</li>
+  </ul></div>
+  <div class="cons"><h4>方案2 不足</h4><ul>
+    <li>生成卡片被压缩为单行文本，信息深度不够</li>
+    <li>雷达图与评分环并排让两者都不够突出</li>
+  </ul></div>
+</div>
+
+<div class="pros-cons">
+  <div class="pros"><h4>方案3（推荐）特点</h4><ul>
+    <li>输入区宽大均衡，PDF/文本用标签切换清晰</li>
+    <li>结果区采用"窄-中-宽"不对称布局，信息层级分明</li>
+    <li>雷达图五维标签+分数直接标注，无需额外图例</li>
+    <li>生成卡片在右列纵向展开，每项都有足够空间</li>
+    <li>1920×1080 单屏完整呈现</li>
+  </ul></div>
+  <div class="cons"><h4>方案3 不足</h4><ul>
+    <li>不对称布局对CSS响应式要求稍高</li>
+  </ul></div>
+</div>
+</div>
