@@ -6,7 +6,7 @@ export default function ResultPanel({ result }) {
   if (!result) return null;
 
   return (
-    <div className="flex gap-3 flex-wrap">
+    <div className="flex gap-3 flex-wrap flex-wrap-results">
       {/* 左窄列：评分环 + 评语 */}
       <ScoreRing score={result.overallScore} comment={result.overallComment} />
 

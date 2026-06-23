@@ -5,3 +5,9 @@
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
+
+@media (max-width: 768px) {
+  .flex-wrap-results {
+    flex-direction: column;
+  }
+}
