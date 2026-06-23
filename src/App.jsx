@@ -3,6 +3,7 @@ import { matchResumeWithJD } from './services/api';
 import Header from './components/Header';
 import InputPanel from './components/InputPanel';
 import MatchButton from './components/MatchButton';
+import ResultPanel from './components/ResultPanel';
 
 export default function App() {
   const { state, setResume, setJd, startMatch, matchSuccess, matchError } =
@@ -49,6 +50,8 @@ export default function App() {
           </button>
         </div>
       )}
+
+      <ResultPanel result={state.result} />
     </div>
   );
 }
