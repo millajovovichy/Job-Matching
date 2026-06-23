@@ -32,7 +32,7 @@ export default function RadarChart({ dimensions }) {
   }));
 
   return (
-    <div className="flex-1 bg-white border border-gray-200 rounded-xl p-3 min-w-[220px] flex items-center justify-center">
+    <div className="w-full h-full bg-white border border-gray-200 rounded-xl p-3 flex items-center justify-center">
       <ResponsiveContainer width="100%" height={240}>
         <ReRadarChart data={data} cx="50%" cy="50%" outerRadius="70%">
           <PolarGrid stroke="#e2e8f0" />
