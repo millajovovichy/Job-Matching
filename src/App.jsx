@@ -1,7 +1,12 @@
+import { useMatchReducer } from './hooks/useMatchReducer';
+import Header from './components/Header';
+
 export default function App() {
+  const { state } = useMatchReducer();
+
   return (
-    <div className="min-h-screen flex items-center justify-center">
-      <h1 className="text-2xl font-bold text-gray-800">简历 × JD 匹配</h1>
+    <div className="max-w-6xl mx-auto px-4 py-6">
+      <Header isDemo={state.isDemo} />
     </div>
   );
 }
