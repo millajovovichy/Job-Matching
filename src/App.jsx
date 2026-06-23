@@ -32,9 +32,14 @@ export default function App() {
   const hasContent = state.resumeText.trim().length > 0 && state.jdText.trim().length > 0;
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <div className="max-w-6xl mx-auto px-4 py-8">
+    <div className="min-h-screen bg-stone-100">
+      {/* 全局顶栏 */}
+      <header className="bg-white border-b border-stone-200 px-6 py-2.5 flex items-center justify-between sticky top-0 z-10">
         <Header isDemo={state.isDemo} />
+      </header>
+
+      {/* 主内容 */}
+      <div className="max-w-6xl mx-auto px-5 py-6">
         <InputPanel
           resumeText={state.resumeText}
           jdText={state.jdText}
@@ -44,7 +49,7 @@ export default function App() {
         <MatchButton isLoading={state.isLoading} onMatch={handleMatch} hasContent={hasContent} />
 
         {state.error && (
-          <div className="mb-4 flex items-center justify-between bg-red-50 border border-red-200 rounded-xl px-5 py-3.5 text-sm animate-fade-in-up">
+          <div className="mb-4 flex items-center justify-between bg-red-50 border border-red-200 rounded-2xl px-5 py-3.5 text-sm animate-fade-in-up">
             <span className="text-red-700 flex items-center gap-2">
               <i className="fas fa-circle-exclamation text-red-400"></i>
               {ERROR_MESSAGES[state.error] || `匹配失败：${state.error}`}

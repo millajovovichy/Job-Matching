@@ -90,9 +90,9 @@ describe('App 集成测试', () => {
       expect(screen.queryByText('示例数据')).not.toBeInTheDocument();
     });
 
-    // 新分数应该显示
+    // 新分数应该显示（可能出现在评分环和柱形图例两处）
     await waitFor(() => {
-      expect(screen.getByText('85')).toBeInTheDocument();
+      expect(screen.getAllByText('85').length).toBeGreaterThanOrEqual(1);
     });
   });
 });

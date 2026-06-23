@@ -1,31 +1,44 @@
 import ScoreRing from './ScoreRing';
 import RadarChart from './RadarChart';
+import BarLegend from './BarLegend';
 import AnalysisCards from './AnalysisCards';
 
 export default function ResultPanel({ result }) {
   if (!result) return null;
 
   return (
-    <div className="flex flex-col gap-3">
-      {/* 第一行：评分环 + 雷达图 */}
-      <div className="flex flex-col md:flex-row md:flex-nowrap gap-3">
-        <div className="w-48 flex-shrink-0">
+    <div className="flex flex-col gap-4">
+      {/* 第一行：评分环 + 雷达卡片（内含雷达图 + 柱形图例） */}
+      <div className="flex flex-col md:flex-row md:flex-nowrap gap-4 items-stretch">
+        {/* 评分环 */}
+        <div className="w-44 flex-shrink-0">
           <ScoreRing score={result.overallScore} comment={result.overallComment} />
         </div>
-        <div className="flex-1 min-w-0">
-          <RadarChart dimensions={result.dimensions} />
+
+        {/* 雷达卡片：同一模块内含雷达图 + 柱形图例 */}
+        <div className="flex-1 min-w-0 bg-white rounded-2xl border border-stone-200 shadow-sm p-5 flex items-center gap-4">
+          {/* 左侧：雷达图 */}
+          <div className="flex-[0.52] min-w-0 flex items-center justify-center">
+            <RadarChart dimensions={result.dimensions} />
+          </div>
+
+          {/* 竖线分隔 */}
+          <div className="w-px h-44 bg-stone-200 flex-shrink-0" />
+
+          {/* 右侧：柱形图例 */}
+          <div className="flex-[0.48] min-w-0 pl-2">
+            <BarLegend dimensions={result.dimensions} />
+          </div>
         </div>
       </div>
 
       {/* 第二行：优势/短板/建议 三卡片并列 */}
       <div className="flex flex-col md:flex-row gap-3">
-        <div className="flex-1 min-w-0">
-          <AnalysisCards
-            strengths={result.strengths}
-            weaknesses={result.weaknesses}
-            skillSuggestions={result.skillSuggestions}
-          />
-        </div>
+        <AnalysisCards
+          strengths={result.strengths}
+          weaknesses={result.weaknesses}
+          skillSuggestions={result.skillSuggestions}
+        />
       </div>
     </div>
   );
