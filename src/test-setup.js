@@ -1,5 +1,12 @@
 import '@testing-library/jest-dom';
 
+// Shim requestAnimationFrame to complete animations instantly in jsdom
+globalThis.requestAnimationFrame = (cb) => {
+  cb(performance.now() + 1000);
+  return 0;
+};
+globalThis.cancelAnimationFrame = () => {};
+
 // Polyfill DOMMatrix for pdfjs-dist in jsdom test environment
 if (!globalThis.DOMMatrix) {
   class DOMMatrix {

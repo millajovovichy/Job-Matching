@@ -16,29 +16,32 @@ const DIMENSION_LABELS = {
 };
 
 const DIMENSION_COLORS = {
-  projectExperience: '#22c55e',
-  technicalSkills: '#3b82f6',
-  domainMatch: '#f59e0b',
-  softSkills: '#8b5cf6',
-  education: '#ec4899',
+  projectExperience: '#059669',
+  technicalSkills: '#4f46e5',
+  domainMatch: '#d97706',
+  softSkills: '#7c3aed',
+  education: '#db2777',
 };
 
 export default function RadarChart({ dimensions }) {
   const data = Object.entries(dimensions).map(([key, value]) => ({
-    dimension: `${DIMENSION_LABELS[key] || key} ${value.score}`,
+    dimension: `${DIMENSION_LABELS[key] || key}  ${value.score}`,
     score: value.score,
     fullMark: 100,
-    color: DIMENSION_COLORS[key] || '#94a3b8',
   }));
 
   return (
-    <div className="w-full h-full bg-white border border-gray-200 rounded-xl p-3 flex items-center justify-center">
-      <ResponsiveContainer width="100%" height={240}>
-        <ReRadarChart data={data} cx="50%" cy="50%" outerRadius="70%">
-          <PolarGrid stroke="#e2e8f0" />
+    <div className="w-full h-full bg-white border border-slate-200 rounded-2xl shadow-sm p-4 flex items-center justify-center">
+      <ResponsiveContainer width="100%" height={280}>
+        <ReRadarChart data={data} cx="50%" cy="50%" outerRadius="65%">
+          <PolarGrid stroke="#e2e8f0" strokeWidth={1} />
           <PolarAngleAxis
             dataKey="dimension"
-            tick={{ fontSize: 11, fill: '#475569', fontWeight: 600 }}
+            tick={{
+              fontSize: 12,
+              fill: '#475569',
+              fontWeight: 600,
+            }}
           />
           <PolarRadiusAxis
             angle={90}
@@ -46,15 +49,17 @@ export default function RadarChart({ dimensions }) {
             tick={{ fontSize: 9, fill: '#94a3b8' }}
             axisLine={false}
             tickCount={5}
+            stroke="#f1f5f9"
           />
           <Radar
             name="匹配度"
             dataKey="score"
-            stroke="#3b82f6"
-            fill="#3b82f6"
-            fillOpacity={0.15}
-            strokeWidth={2}
-            dot={{ r: 4, fill: '#3b82f6', strokeWidth: 0 }}
+            stroke="#4f46e5"
+            fill="#4f46e5"
+            fillOpacity={0.12}
+            strokeWidth={2.5}
+            dot={{ r: 5, fill: '#4f46e5', strokeWidth: 2, stroke: '#fff' }}
+            activeDot={{ r: 7, fill: '#4f46e5', strokeWidth: 2, stroke: '#fff' }}
           />
         </ReRadarChart>
       </ResponsiveContainer>

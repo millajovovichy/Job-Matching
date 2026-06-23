@@ -32,32 +32,34 @@ export default function App() {
   const hasContent = state.resumeText.trim().length > 0 && state.jdText.trim().length > 0;
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-6">
-      <Header isDemo={state.isDemo} />
-      <InputPanel
-        resumeText={state.resumeText}
-        jdText={state.jdText}
-        onResumeChange={setResume}
-        onJdChange={setJd}
-      />
-      <MatchButton isLoading={state.isLoading} onMatch={handleMatch} hasContent={hasContent} />
+    <div className="min-h-screen bg-slate-50">
+      <div className="max-w-6xl mx-auto px-4 py-8">
+        <Header isDemo={state.isDemo} />
+        <InputPanel
+          resumeText={state.resumeText}
+          jdText={state.jdText}
+          onResumeChange={setResume}
+          onJdChange={setJd}
+        />
+        <MatchButton isLoading={state.isLoading} onMatch={handleMatch} hasContent={hasContent} />
 
-      {state.error && (
-        <div className="max-w-6xl mx-auto mb-3 flex items-center justify-between bg-red-50 border border-red-200 text-red-700 rounded-lg px-4 py-3 text-sm">
-          <span>
-            <i className="fas fa-circle-exclamation mr-2"></i>
-            {ERROR_MESSAGES[state.error] || `匹配失败：${state.error}`}
-          </span>
-          <button
-            onClick={handleMatch}
-            className="text-red-600 hover:text-red-800 font-medium text-xs underline"
-          >
-            重试
-          </button>
-        </div>
-      )}
+        {state.error && (
+          <div className="mb-4 flex items-center justify-between bg-red-50 border border-red-200 rounded-xl px-5 py-3.5 text-sm animate-fade-in-up">
+            <span className="text-red-700 flex items-center gap-2">
+              <i className="fas fa-circle-exclamation text-red-400"></i>
+              {ERROR_MESSAGES[state.error] || `匹配失败：${state.error}`}
+            </span>
+            <button
+              onClick={handleMatch}
+              className="text-red-600 hover:text-red-800 font-medium text-xs underline underline-offset-2 transition-colors"
+            >
+              重试
+            </button>
+          </div>
+        )}
 
-      <ResultPanel result={state.result} />
+        <ResultPanel result={state.result} />
+      </div>
     </div>
   );
 }
