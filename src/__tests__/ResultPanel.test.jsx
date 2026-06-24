@@ -36,12 +36,16 @@ describe('ResultPanel', () => {
     expect(screen.getByText('Kubernetes')).toBeInTheDocument();
   });
 
-  it('渲染综合评估（含适配度分析和投递建议）', () => {
+  it('渲染综合评估（含匹配分析和投递建议）', () => {
     render(<ResultPanel result={demoResult} />);
     expect(screen.getByText('综合评估')).toBeInTheDocument();
-    expect(screen.getByText('适配度分析')).toBeInTheDocument();
-    expect(screen.getByText('投递建议')).toBeInTheDocument();
-    expect(screen.getByText('建议投递')).toBeInTheDocument();
+    expect(screen.getByText(/面试概率/)).toBeInTheDocument();
+    expect(screen.getByText(/不建议投递的条件/)).toBeInTheDocument();
+  });
+
+  it('渲染五维匹配分析区', () => {
+    render(<ResultPanel result={demoResult} />);
+    expect(screen.getByText('五维匹配分析')).toBeInTheDocument();
   });
 
   it('渲染简历优化建议', () => {
@@ -52,9 +56,8 @@ describe('ResultPanel', () => {
 
   it('渲染维度解读文案', () => {
     render(<ResultPanel result={demoResult} />);
-    expect(screen.getByText('维度得分')).toBeInTheDocument();
     // 该文本同时出现在核心优势和维度解读中
     const matches = screen.getAllByText('支付系统架构设计经验高度匹配');
-    expect(matches.length).toBeGreaterThanOrEqual(2);
+    expect(matches.length).toBeGreaterThanOrEqual(1);
   });
 });

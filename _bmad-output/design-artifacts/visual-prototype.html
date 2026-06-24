@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>人岗匹配 — 终版深色主题</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+  body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', sans-serif; }
+  @keyframes fadeInUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+  .anim-in { animation: fadeInUp 0.5s ease-out forwards; opacity: 0; }
+  .s1 { animation-delay: 0.05s; } .s2 { animation-delay: 0.12s; } .s3 { animation-delay: 0.19s; }
+  .s4 { animation-delay: 0.26s; } .s5 { animation-delay: 0.33s; } .s6 { animation-delay: 0.40s; }
+  .ring-glow { filter: drop-shadow(0 0 36px rgba(129,140,248,0.55)); }
+  ::-webkit-scrollbar { width: 4px; } ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 2px; }
+</style>
+</head>
+<body class="min-h-screen" style="background:#030712">
+
+<header class="sticky top-0 z-20 border-b border-white/[0.06]" style="background:rgba(3,7,18,0.85); backdrop-filter:blur(16px)">
+  <div class="max-w-6xl mx-auto px-6 h-14 flex items-center justify-between">
+    <div class="flex items-center gap-3">
+      <div class="w-8 h-8 rounded-[10px] bg-gradient-to-br from-blue-500 to-violet-500 flex items-center justify-center shadow-lg shadow-indigo-500/25">
+        <i class="fa-solid fa-magnifying-glass text-white text-xs"></i>
+      </div>
+      <span class="text-base font-bold text-white tracking-tight">简历 × JD 匹配</span>
+    </div>
+    <span class="bg-amber-500/10 text-amber-400 text-xs font-medium px-3 py-1 rounded-full border border-amber-500/15 flex items-center gap-1.5">
+      <i class="fa-solid fa-circle-info text-[10px]"></i> 示例数据
+    </span>
+  </div>
+</header>
+
+<main class="max-w-6xl mx-auto px-6 py-8">
+
+  <!-- ===== INPUT ===== -->
+  <div class="flex gap-4 mb-6">
+    <div class="flex-1 anim-in s1 bg-white/[0.03] rounded-2xl ring-1 ring-white/[0.06] p-5">
+      <div class="flex items-center justify-between mb-3">
+        <h3 class="text-sm font-semibold text-white flex items-center gap-2">
+          <i class="fa-solid fa-file-lines text-blue-400"></i> 简历
+        </h3>
+        <div class="flex bg-white/[0.06] rounded-lg p-0.5">
+          <button class="px-3 py-1 text-xs font-semibold bg-white/[0.12] text-white rounded-md transition-all">粘贴文本</button>
+          <button class="px-3 py-1 text-xs text-white/45 rounded-md transition-all hover:text-white/60">PDF 上传</button>
+        </div>
+      </div>
+      <textarea class="w-full h-40 bg-white/[0.04] rounded-xl p-3.5 text-sm text-white placeholder-white/20 resize-none focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:bg-white/[0.06] border border-transparent transition-all" placeholder="在此粘贴简历文本..."></textarea>
+      <div class="text-xs text-white/20 text-right mt-1.5">0 / 5000</div>
+    </div>
+    <div class="flex-1 anim-in s1 bg-white/[0.03] rounded-2xl ring-1 ring-white/[0.06] p-5">
+      <h3 class="text-sm font-semibold text-white mb-3 flex items-center gap-2">
+        <i class="fa-solid fa-briefcase text-violet-400"></i> 岗位描述 (JD)
+      </h3>
+      <textarea class="w-full h-40 bg-white/[0.04] rounded-xl p-3.5 text-sm text-white placeholder-white/20 resize-none focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:bg-white/[0.06] border border-transparent transition-all" placeholder="在此粘贴岗位 JD 文本..."></textarea>
+      <div class="text-xs text-white/20 text-right mt-1.5">0 / 5000</div>
+    </div>
+  </div>
+
+  <!-- Match Button -->
+  <div class="flex justify-center mb-8 anim-in s2">
+    <button class="bg-gradient-to-br from-indigo-500 to-violet-500 text-white px-10 py-3 rounded-xl font-semibold text-sm hover:shadow-xl hover:shadow-indigo-500/30 hover:-translate-y-0.5 transition-all duration-300 flex items-center gap-2 ring-1 ring-white/10">
+      <i class="fa-solid fa-magnifying-glass"></i> 开始匹配分析
+    </button>
+  </div>
+
+  <!-- ============================================ -->
+  <!-- ===== HERO ===== -->
+  <!-- ============================================ -->
+  <div class="anim-in s3 bg-white/[0.03] rounded-2xl ring-1 ring-white/[0.06] p-8 mb-6">
+
+    <!-- Row 1: Score + Assessment -->
+    <div class="grid grid-cols-[35%_65%] gap-8 mb-8">
+      <!-- Score Ring -->
+      <div class="flex flex-col items-center justify-center py-4">
+        <div class="relative inline-flex items-center justify-center">
+          <svg viewBox="0 0 180 180" class="w-48 h-48 ring-glow">
+            <defs>
+              <linearGradient id="ringGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#818cf8"/>
+                <stop offset="50%" stop-color="#a78bfa"/>
+                <stop offset="100%" stop-color="#c4b5fd"/>
+              </linearGradient>
+            </defs>
+            <circle cx="90" cy="90" r="72" fill="none" stroke="rgba(255,255,255,0.04)" stroke-width="10"/>
+            <circle cx="90" cy="90" r="72" fill="none" stroke="url(#ringGrad)" stroke-width="10"
+              stroke-linecap="round" stroke-dasharray="452" stroke-dashoffset="68"
+              transform="rotate(-90 90 90)" style="transition: stroke-dashoffset 1.2s cubic-bezier(0.4,0,0.2,1)"/>
+          </svg>
+          <div class="absolute inset-0 flex flex-col items-center justify-center">
+            <span class="text-[56px] font-extrabold text-white tracking-tighter leading-none">85</span>
+            <span class="text-xs text-indigo-300/80 font-semibold mt-0.5 tracking-widest">综合匹配度</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Assessment -->
+      <div class="bg-white/[0.04] rounded-xl p-6 flex flex-col justify-center ring-1 ring-white/[0.05]">
+        <h3 class="text-sm font-bold text-white mb-3 flex items-center gap-2">
+          <i class="fa-solid fa-clipboard-check text-indigo-400"></i> 综合评估
+        </h3>
+        <p class="text-sm text-white/75 leading-relaxed mb-5">
+          技术栈与JD要求高度吻合，支付架构和Spring Cloud是核心卖点。但K8s运维经验缺失对匹配影响较大，建议投递前针对性补足。
+        </p>
+        <div class="flex items-center gap-3">
+          <span class="flex items-center gap-1.5 bg-emerald-500/15 text-emerald-300 text-xs font-bold px-3 py-1.5 rounded-lg border border-emerald-400/20">
+            🔥 面试概率：较高
+          </span>
+          <span class="flex items-center gap-1.5 bg-blue-500/15 text-blue-300 text-xs font-bold px-3 py-1.5 rounded-lg border border-blue-400/20">
+            ✅ 建议投递
+          </span>
+        </div>
+        <div class="mt-5 pt-5 border-t border-white/[0.06]">
+          <p class="text-xs text-white/45 font-medium mb-2.5">⚠️ 不建议投递的条件：</p>
+          <ul class="text-xs space-y-1.5">
+            <li class="flex items-start gap-2"><span class="text-amber-400/80 mt-0.5">•</span><span class="text-white/70">岗位要求5年以上K8s生产运维经验而你缺失此技能</span></li>
+            <li class="flex items-start gap-2"><span class="text-amber-400/80 mt-0.5">•</span><span class="text-white/70">目标公司严格卡学历（985/211），你非目标院校</span></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Row 2: Radar + Bars -->
+    <div class="bg-white/[0.04] rounded-xl p-6 ring-1 ring-white/[0.05]">
+      <h3 class="text-sm font-bold text-white mb-5 flex items-center gap-2">
+        <i class="fa-solid fa-chart-pie text-indigo-400"></i> 五维匹配分析
+      </h3>
+      <div class="grid grid-cols-2 gap-8">
+        <!-- Radar -->
+        <div class="flex items-center justify-center">
+          <svg viewBox="0 0 260 240" class="w-full max-w-[280px]">
+            <defs>
+              <radialGradient id="radarGrad">
+                <stop offset="0%" stop-color="#a78bfa" stop-opacity="0.35"/>
+                <stop offset="100%" stop-color="#a78bfa" stop-opacity="0.02"/>
+              </radialGradient>
+            </defs>
+            <polygon points="130,30 224,96 188,198 72,198 36,96" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
+            <polygon points="130,58 204,110 173,182 87,182 56,110" fill="none" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
+            <polygon points="130,86 184,124 158,166 102,166 76,124" fill="none" stroke="rgba(255,255,255,0.03)" stroke-width="1"/>
+            <polygon points="130,42 210,102 170,190 80,190 50,102" fill="url(#radarGrad)" stroke="#c4b5fd" stroke-width="2.5"/>
+            <circle cx="130" cy="42" r="5" fill="#0a0f1a" stroke="#c4b5fd" stroke-width="2.5"/>
+            <circle cx="210" cy="102" r="5" fill="#0a0f1a" stroke="#c4b5fd" stroke-width="2.5"/>
+            <circle cx="170" cy="190" r="5" fill="#0a0f1a" stroke="#c4b5fd" stroke-width="2.5"/>
+            <circle cx="80" cy="190" r="5" fill="#0a0f1a" stroke="#c4b5fd" stroke-width="2.5"/>
+            <circle cx="50" cy="102" r="5" fill="#0a0f1a" stroke="#c4b5fd" stroke-width="2.5"/>
+            <text x="130" y="20" text-anchor="middle" fill="#e2e8f0" font-size="11" font-weight="600">项目经验</text>
+            <text x="242" y="100" text-anchor="start" fill="#e2e8f0" font-size="11" font-weight="600">技术技能</text>
+            <text x="182" y="214" text-anchor="middle" fill="#e2e8f0" font-size="11" font-weight="600">领域匹配</text>
+            <text x="78" y="214" text-anchor="middle" fill="#e2e8f0" font-size="11" font-weight="600">软实力</text>
+            <text x="14" y="100" text-anchor="end" fill="#e2e8f0" font-size="11" font-weight="600">学历背景</text>
+          </svg>
+        </div>
+        <!-- Bars -->
+        <div class="space-y-4 py-2">
+          <div>
+            <div class="flex items-center justify-between mb-1.5">
+              <span class="text-xs font-medium text-white/70 w-14 text-right">项目经验</span>
+              <div class="flex-1 mx-3 h-2.5 bg-white/[0.06] rounded-full overflow-hidden">
+                <div class="h-full rounded-full transition-all duration-700 ease-out" style="width:88%; background:linear-gradient(90deg,#34d399,#10b981)"></div>
+              </div>
+              <span class="text-sm font-bold text-emerald-400 w-8 text-right">88</span>
+            </div>
+            <p class="text-[10px] text-white/40 ml-14 pl-3 leading-relaxed">支付架构经验与JD高度吻合，是你的核心卖点——面试时重点展开</p>
+          </div>
+          <div>
+            <div class="flex items-center justify-between mb-1.5">
+              <span class="text-xs font-medium text-white/70 w-14 text-right">技术技能</span>
+              <div class="flex-1 mx-3 h-2.5 bg-white/[0.06] rounded-full overflow-hidden">
+                <div class="h-full rounded-full transition-all duration-700 ease-out" style="width:72%; background:linear-gradient(90deg,#60a5fa,#3b82f6)"></div>
+              </div>
+              <span class="text-sm font-bold text-blue-400 w-8 text-right">72</span>
+            </div>
+            <p class="text-[10px] text-white/40 ml-14 pl-3 leading-relaxed">技术栈覆盖JD要求的60%，Spring Cloud是强项但K8s缺失影响较大，投递前建议补上</p>
+          </div>
+          <div>
+            <div class="flex items-center justify-between mb-1.5">
+              <span class="text-xs font-medium text-white/70 w-14 text-right">领域匹配</span>
+              <div class="flex-1 mx-3 h-2.5 bg-white/[0.06] rounded-full overflow-hidden">
+                <div class="h-full rounded-full transition-all duration-700 ease-out" style="width:65%; background:linear-gradient(90deg,#fbbf24,#f59e0b)"></div>
+              </div>
+              <span class="text-sm font-bold text-amber-400 w-8 text-right">65</span>
+            </div>
+            <p class="text-[10px] text-white/40 ml-14 pl-3 leading-relaxed">金融支付领域经验加分，但保险行业特定知识尚有提升空间</p>
+          </div>
+          <div>
+            <div class="flex items-center justify-between mb-1.5">
+              <span class="text-xs font-medium text-white/70 w-14 text-right">软实力</span>
+              <div class="flex-1 mx-3 h-2.5 bg-white/[0.06] rounded-full overflow-hidden">
+                <div class="h-full rounded-full transition-all duration-700 ease-out" style="width:80%; background:linear-gradient(90deg,#a78bfa,#8b5cf6)"></div>
+              </div>
+              <span class="text-sm font-bold text-violet-400 w-8 text-right">80</span>
+            </div>
+            <p class="text-[10px] text-white/40 ml-14 pl-3 leading-relaxed">跨部门协作和技术管理经验在JD中有明显体现</p>
+          </div>
+          <div>
+            <div class="flex items-center justify-between mb-1.5">
+              <span class="text-xs font-medium text-white/70 w-14 text-right">学历背景</span>
+              <div class="flex-1 mx-3 h-2.5 bg-white/[0.06] rounded-full overflow-hidden">
+                <div class="h-full rounded-full transition-all duration-700 ease-out" style="width:60%; background:linear-gradient(90deg,#f472b6,#ec4899)"></div>
+              </div>
+              <span class="text-sm font-bold text-pink-400 w-8 text-right">60</span>
+            </div>
+            <p class="text-[10px] text-white/40 ml-14 pl-3 leading-relaxed">本科学历满足JD基本要求，但硕士优先项存在差距</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div><!-- /HERO -->
+
+  <!-- ============================================ -->
+  <!-- ===== ANALYSIS CARDS ===== -->
+  <!-- ============================================ -->
+  <div class="grid grid-cols-3 gap-5 mb-6">
+
+    <!-- 核心优势 -->
+    <div class="anim-in s4 bg-white/[0.03] rounded-2xl ring-1 ring-white/[0.06] p-5 border-l-4 border-l-emerald-400">
+      <h3 class="text-sm font-bold text-white mb-4 flex items-center gap-2">
+        <i class="fa-solid fa-star text-emerald-400"></i> 核心优势
+      </h3>
+      <div class="space-y-3">
+        <div class="bg-emerald-500/[0.06] rounded-xl p-3 ring-1 ring-emerald-500/[0.10]">
+          <div class="flex items-start gap-2">
+            <span class="text-emerald-400 font-bold text-sm mt-0.5 shrink-0">1.</span>
+            <div class="min-w-0">
+              <p class="text-sm font-semibold text-white">支付架构经验丰富</p>
+              <p class="text-xs text-emerald-400/90 font-medium mt-0.5">🎯 命中JD: "5年以上支付系统架构设计经验"</p>
+              <p class="text-xs text-white/60 mt-1 leading-relaxed">主导过日交易额10亿+的支付网关架构，涵盖收单、路由、清结算全链路</p>
+              <p class="text-xs text-emerald-400/70 font-medium mt-1">📊 覆盖度: JD 7项职责覆盖5项</p>
+            </div>
+          </div>
+        </div>
+        <div class="bg-emerald-500/[0.06] rounded-xl p-3 ring-1 ring-emerald-500/[0.10]">
+          <div class="flex items-start gap-2">
+            <span class="text-emerald-400 font-bold text-sm mt-0.5 shrink-0">2.</span>
+            <div class="min-w-0">
+              <p class="text-sm font-semibold text-white">Spring Cloud 微服务专家</p>
+              <p class="text-xs text-emerald-400/90 font-medium mt-0.5">🎯 命中JD: "精通Spring Cloud全家桶"</p>
+              <p class="text-xs text-white/60 mt-1 leading-relaxed">5年Spring Cloud生产经验，对Gateway、Config、Stream组件有深度使用</p>
+              <p class="text-xs text-emerald-400/70 font-medium mt-1">📊 覆盖度: JD技术栈要求90%匹配</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 短板分析 -->
+    <div class="anim-in s4 bg-white/[0.03] rounded-2xl ring-1 ring-white/[0.06] p-5 border-l-4 border-l-red-400">
+      <h3 class="text-sm font-bold text-white mb-4 flex items-center gap-2">
+        <i class="fa-solid fa-triangle-exclamation text-red-400"></i> 短板分析
+      </h3>
+      <div class="space-y-3">
+        <div class="bg-red-500/[0.06] rounded-xl p-3 ring-1 ring-red-500/[0.10]">
+          <div class="flex items-center gap-2 mb-1.5">
+            <span class="px-1.5 py-0.5 rounded-md text-[10px] font-bold bg-red-500/20 text-red-300 border border-red-500/25 shrink-0">严重</span>
+            <p class="text-sm font-semibold text-white truncate">K8s 运维经验缺失</p>
+          </div>
+          <p class="text-xs text-white/60 leading-relaxed">JD明确要求K8s生产运维经验，你目前缺少容器编排的实操背景，可能直接影响简历筛选通过率。</p>
+        </div>
+        <div class="bg-amber-500/[0.06] rounded-xl p-3 ring-1 ring-amber-500/[0.10]">
+          <div class="flex items-center gap-2 mb-1.5">
+            <span class="px-1.5 py-0.5 rounded-md text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/25 shrink-0">中等</span>
+            <p class="text-sm font-semibold text-white truncate">保险行业知识不足</p>
+          </div>
+          <p class="text-xs text-white/60 leading-relaxed">JD优先考虑有保险/金融行业经验候选人，你的经验集中在支付领域，保险业务术语和流程不熟悉。</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 补足路线图 -->
+    <div class="anim-in s4 bg-white/[0.03] rounded-2xl ring-1 ring-white/[0.06] p-5 border-l-4 border-l-blue-400">
+      <h3 class="text-sm font-bold text-white mb-4 flex items-center gap-2">
+        <i class="fa-solid fa-road text-blue-400"></i> 补足路线图
+      </h3>
+      <div class="space-y-3">
+        <div class="bg-blue-500/[0.06] rounded-xl p-3 ring-1 ring-blue-500/[0.10]">
+          <p class="text-sm font-semibold text-white">K8s 速成入门</p>
+          <p class="text-xs text-blue-400/80 font-medium mt-0.5">投递前可补到面试门槛</p>
+          <div class="mt-2.5 space-y-2">
+            <div class="flex items-start gap-2 text-xs">
+              <span class="text-blue-400 font-bold mt-0.5 shrink-0">1.</span>
+              <div>
+                <span class="text-white/70 font-medium">完成 K8s 官方入门教程</span>
+                <div class="text-white/40 mt-0.5">📦 产出: 部署一个3节点的本地集群 <span class="mx-1.5">·</span> ⏱ 约 8 小时</div>
+              </div>
+            </div>
+            <div class="flex items-start gap-2 text-xs">
+              <span class="text-blue-400 font-bold mt-0.5 shrink-0">2.</span>
+              <div>
+                <span class="text-white/70 font-medium">在简历中添加 K8s 项目经验</span>
+                <div class="text-white/40 mt-0.5">📦 产出: 一段可写进简历的 K8s 实操描述 <span class="mx-1.5">·</span> ⏱ 约 2 小时</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="bg-blue-500/[0.06] rounded-xl p-3 ring-1 ring-blue-500/[0.10]">
+          <p class="text-sm font-semibold text-white">保险业务知识速览</p>
+          <p class="text-xs text-blue-400/80 font-medium mt-0.5">面试时展现行业认知</p>
+          <div class="mt-2.5 space-y-2">
+            <div class="flex items-start gap-2 text-xs">
+              <span class="text-blue-400 font-bold mt-0.5 shrink-0">1.</span>
+              <div>
+                <span class="text-white/70 font-medium">阅读保险核心系统架构白皮书</span>
+                <div class="text-white/40 mt-0.5">📦 产出: 保险业务知识笔记 <span class="mx-1.5">·</span> ⏱ 约 4 小时</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div><!-- /ANALYSIS -->
+
+  <!-- ============================================ -->
+  <!-- ===== RESUME OPTIMIZATION ===== -->
+  <!-- ============================================ -->
+  <div class="anim-in s5 bg-white/[0.03] rounded-2xl ring-1 ring-white/[0.06] p-5 border-l-4 border-l-violet-400">
+    <h3 class="text-sm font-bold text-white mb-5 flex items-center gap-2">
+      <i class="fa-solid fa-pen-to-square text-violet-400"></i> 简历优化建议
+    </h3>
+    <div class="grid grid-cols-3 gap-4">
+      <!-- Card 1 -->
+      <div class="bg-violet-500/[0.05] rounded-xl p-4 ring-1 ring-violet-500/[0.10]">
+        <div class="flex items-center gap-2 mb-3">
+          <span class="w-5 h-5 rounded-full bg-violet-500 text-white text-[10px] font-bold flex items-center justify-center shrink-0 shadow-sm shadow-violet-500/30">1</span>
+          <span class="text-xs font-bold text-violet-300">命中: 支付架构</span>
+        </div>
+        <div class="relative bg-white/[0.03] rounded-lg ring-1 ring-white/[0.06] p-3 mb-2.5 pt-4">
+          <span class="absolute -top-2 left-3 px-2 py-0.5 text-[10px] font-semibold text-white/40 rounded border border-white/[0.08]" style="background:#141a28">原文</span>
+          <p class="text-xs text-white/60 leading-relaxed">负责支付系统的开发和维护工作</p>
+        </div>
+        <div class="flex items-center justify-center text-white/10 text-xs mb-2.5">
+          <i class="fa-solid fa-arrow-down"></i>
+        </div>
+        <div class="relative bg-white/[0.03] rounded-lg ring-1 ring-indigo-500/20 p-3 pt-4">
+          <span class="absolute -top-2 left-3 px-2 py-0.5 text-[10px] font-semibold text-indigo-300 rounded border border-indigo-500/20" style="background:rgba(49,46,129,0.3)">优化</span>
+          <p class="text-xs text-indigo-200/90 font-medium leading-relaxed">主导日交易额10亿+支付网关架构设计，覆盖收单、路由、清结算全链路</p>
+        </div>
+      </div>
+      <!-- Card 2 -->
+      <div class="bg-violet-500/[0.05] rounded-xl p-4 ring-1 ring-violet-500/[0.10]">
+        <div class="flex items-center gap-2 mb-3">
+          <span class="w-5 h-5 rounded-full bg-violet-500 text-white text-[10px] font-bold flex items-center justify-center shrink-0 shadow-sm shadow-violet-500/30">2</span>
+          <span class="text-xs font-bold text-violet-300">命中: Spring Cloud</span>
+        </div>
+        <div class="relative bg-white/[0.03] rounded-lg ring-1 ring-white/[0.06] p-3 mb-2.5 pt-4">
+          <span class="absolute -top-2 left-3 px-2 py-0.5 text-[10px] font-semibold text-white/40 rounded border border-white/[0.08]" style="background:#141a28">原文</span>
+          <p class="text-xs text-white/60 leading-relaxed">了解微服务相关技术</p>
+        </div>
+        <div class="flex items-center justify-center text-white/10 text-xs mb-2.5">
+          <i class="fa-solid fa-arrow-down"></i>
+        </div>
+        <div class="relative bg-white/[0.03] rounded-lg ring-1 ring-indigo-500/20 p-3 pt-4">
+          <span class="absolute -top-2 left-3 px-2 py-0.5 text-[10px] font-semibold text-indigo-300 rounded border border-indigo-500/20" style="background:rgba(49,46,129,0.3)">优化</span>
+          <p class="text-xs text-indigo-200/90 font-medium leading-relaxed">5年Spring Cloud生产经验，深度使用Gateway、Config、Stream组件，管理15+微服务集群</p>
+        </div>
+      </div>
+      <!-- Card 3 -->
+      <div class="bg-violet-500/[0.05] rounded-xl p-4 ring-1 ring-violet-500/[0.10]">
+        <div class="flex items-center gap-2 mb-3">
+          <span class="w-5 h-5 rounded-full bg-violet-500 text-white text-[10px] font-bold flex items-center justify-center shrink-0 shadow-sm shadow-violet-500/30">3</span>
+          <span class="text-xs font-bold text-violet-300">命中: K8s 运维</span>
+        </div>
+        <div class="relative bg-white/[0.03] rounded-lg ring-1 ring-white/[0.06] p-3 mb-2.5 pt-4">
+          <span class="absolute -top-2 left-3 px-2 py-0.5 text-[10px] font-semibold text-white/40 rounded border border-white/[0.08]" style="background:#141a28">原文</span>
+          <p class="text-xs text-white/60 leading-relaxed">（简历中未提及K8s相关内容）</p>
+        </div>
+        <div class="flex items-center justify-center text-white/10 text-xs mb-2.5">
+          <i class="fa-solid fa-arrow-down"></i>
+        </div>
+        <div class="relative bg-white/[0.03] rounded-lg ring-1 ring-indigo-500/20 p-3 pt-4">
+          <span class="absolute -top-2 left-3 px-2 py-0.5 text-[10px] font-semibold text-indigo-300 rounded border border-indigo-500/20" style="background:rgba(49,46,129,0.3)">优化</span>
+          <p class="text-xs text-indigo-200/90 font-medium leading-relaxed">完成K8s官方认证课程(CKA)，具备集群部署、Pod调度、Service Mesh基础实操能力</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<div class="h-12"></div>
+</body>
+</html>

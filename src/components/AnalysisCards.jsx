@@ -1,33 +1,33 @@
 export default function AnalysisCards({ strengths, weaknesses, skillSuggestions }) {
   const severityConfig = {
-    critical: { label: '严重', bg: 'bg-red-100', text: 'text-red-700', border: 'border-red-200' },
-    medium: { label: '中等', bg: 'bg-amber-100', text: 'text-amber-700', border: 'border-amber-200' },
-    minor: { label: '轻微', bg: 'bg-stone-100', text: 'text-stone-600', border: 'border-stone-200' },
+    critical: { label: '严重', bg: 'bg-red-500/20', text: 'text-red-300', border: 'border-red-500/25' },
+    medium: { label: '中等', bg: 'bg-amber-500/20', text: 'text-amber-300', border: 'border-amber-500/25' },
+    minor: { label: '轻微', bg: 'bg-white/5', text: 'text-white/50', border: 'border-white/10' },
   };
 
   return (
-    <div className="w-full flex flex-col md:flex-row gap-3">
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
       {/* 核心优势 */}
-      <div className="flex-1 min-w-0 bg-emerald-50/70 rounded-2xl border border-emerald-100/60 p-4">
-        <h4 className="font-bold text-xs text-emerald-800 mb-3 flex items-center gap-2">
-          <i className="fas fa-check-circle text-emerald-500"></i>
+      <div className="bg-white/[0.03] rounded-2xl ring-1 ring-white/[0.06] p-5 border-l-4 border-l-emerald-400">
+        <h4 className="text-sm font-bold text-white mb-4 flex items-center gap-2">
+          <i className="fas fa-star text-emerald-400"></i>
           核心优势
         </h4>
-        <ul className="space-y-2">
+        <ul className="space-y-3">
           {strengths.map((s, i) => (
-            <li key={i} className="text-xs text-emerald-900 bg-white/80 rounded-xl p-2.5">
+            <li key={i} className="bg-emerald-500/[0.06] rounded-xl p-3 ring-1 ring-emerald-500/[0.10]">
               <div className="flex items-start gap-2">
-                <span className="text-emerald-400 font-bold flex-shrink-0">{i + 1}.</span>
+                <span className="text-emerald-400 font-bold text-sm mt-0.5 shrink-0">{i + 1}.</span>
                 <div className="min-w-0">
-                  <span className="font-semibold">{s.point}</span>
+                  <span className="text-sm font-semibold text-white">{s.point}</span>
                   {s.jdHit && (
-                    <span className="block text-emerald-500/70 mt-0.5 text-[10px] leading-relaxed">
+                    <span className="block text-xs text-emerald-400/90 font-medium mt-0.5">
                       🎯 命中JD：{s.jdHit}
                     </span>
                   )}
-                  <span className="block text-emerald-600/80 mt-1 leading-relaxed">{s.detail}</span>
+                  <span className="block text-xs text-white/60 mt-1 leading-relaxed">{s.detail}</span>
                   {s.coverage && (
-                    <span className="block text-emerald-500/60 mt-0.5 text-[10px] leading-relaxed">
+                    <span className="block text-xs text-emerald-400/70 font-medium mt-1">
                       📊 {s.coverage}
                     </span>
                   )}
@@ -39,38 +39,33 @@ export default function AnalysisCards({ strengths, weaknesses, skillSuggestions 
       </div>
 
       {/* 短板分析 */}
-      <div className="flex-1 min-w-0 bg-red-50/70 rounded-2xl border border-red-100/60 p-4">
-        <h4 className="font-bold text-xs text-red-800 mb-3 flex items-center gap-2">
-          <i className="fas fa-triangle-exclamation text-red-500"></i>
+      <div className="bg-white/[0.03] rounded-2xl ring-1 ring-white/[0.06] p-5 border-l-4 border-l-red-400">
+        <h4 className="text-sm font-bold text-white mb-4 flex items-center gap-2">
+          <i className="fas fa-triangle-exclamation text-red-400"></i>
           短板分析
         </h4>
         {weaknesses.length === 0 ? (
-          <p className="text-xs text-red-600/60 bg-white/80 rounded-xl p-3 text-center">
+          <p className="text-xs text-white/30 bg-white/[0.04] rounded-xl p-3 text-center">
             未检测到明显短板
           </p>
         ) : (
-          <ul className="space-y-2">
+          <ul className="space-y-3">
             {weaknesses.map((w, i) => {
               const sev = severityConfig[w.severity] || severityConfig.minor;
               return (
-                <li key={i} className="text-xs text-red-900 bg-white/80 rounded-xl p-2.5">
-                  <div className="flex items-start gap-2">
-                    <span className="text-red-400 font-bold flex-shrink-0">{i + 1}.</span>
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-1.5 flex-wrap">
-                        <span className="font-semibold">{w.point}</span>
-                        <span className={`inline-flex items-center px-1.5 py-0.5 ${sev.bg} ${sev.text} rounded-md text-[10px] font-bold border ${sev.border}`}>
-                          {sev.label}
-                        </span>
-                      </div>
-                      <span className="block text-red-600/80 mt-1 leading-relaxed">{w.impact}</span>
-                      {w.gapAnalysis && (
-                        <span className="block text-red-500/60 mt-0.5 text-[10px] leading-relaxed">
-                          🔍 {w.gapAnalysis}
-                        </span>
-                      )}
-                    </div>
+                <li key={i} className="bg-red-500/[0.06] rounded-xl p-3 ring-1 ring-red-500/[0.10]">
+                  <div className="flex items-center gap-2 mb-1.5">
+                    <span className={`inline-flex items-center px-1.5 py-0.5 rounded-md text-[10px] font-bold border shrink-0 ${sev.bg} ${sev.text} ${sev.border}`}>
+                      {sev.label}
+                    </span>
+                    <span className="text-sm font-semibold text-white truncate">{w.point}</span>
                   </div>
+                  <span className="block text-xs text-white/60 leading-relaxed">{w.impact}</span>
+                  {w.gapAnalysis && (
+                    <span className="block text-xs text-white/50 mt-1">
+                      🔍 {w.gapAnalysis}
+                    </span>
+                  )}
                 </li>
               );
             })}
@@ -78,25 +73,26 @@ export default function AnalysisCards({ strengths, weaknesses, skillSuggestions 
         )}
       </div>
 
-      {/* 技能补足建议（补足路线图） */}
-      <div className="flex-1 min-w-0 bg-blue-50/70 rounded-2xl border border-blue-100/60 p-4">
-        <h4 className="font-bold text-xs text-blue-800 mb-3 flex items-center gap-2">
-          <i className="fas fa-lightbulb text-blue-500"></i>
+      {/* 补足路线图 */}
+      <div className="bg-white/[0.03] rounded-2xl ring-1 ring-white/[0.06] p-5 border-l-4 border-l-blue-400">
+        <h4 className="text-sm font-bold text-white mb-4 flex items-center gap-2">
+          <i className="fas fa-road text-blue-400"></i>
           补足路线图
         </h4>
-        <ul className="space-y-2">
+        <ul className="space-y-3">
           {skillSuggestions.map((s, i) => (
-            <li key={i} className="text-xs text-blue-900 bg-white/80 rounded-xl p-2.5">
-              <span className="font-semibold">{s.skill}</span>
-              <span className="block text-blue-500/80 mt-0.5 mb-2">{s.reason}</span>
-              <ol className="space-y-1.5">
+            <li key={i} className="bg-blue-500/[0.06] rounded-xl p-3 ring-1 ring-blue-500/[0.10]">
+              <span className="text-sm font-semibold text-white">{s.skill}</span>
+              <span className="block text-xs text-blue-400/80 font-medium mt-0.5">{s.reason}</span>
+              <ol className="mt-2.5 space-y-2">
                 {s.learningPath.map((step, j) => (
-                  <li key={j} className="flex items-start gap-1.5 text-blue-700">
-                    <span className="text-blue-400 font-bold flex-shrink-0 mt-0.5">{j + 1}.</span>
-                    <div className="min-w-0">
-                      <span className="leading-relaxed">{step.step}</span>
-                      <div className="flex items-center gap-2 mt-0.5 text-[10px] text-blue-400">
+                  <li key={j} className="flex items-start gap-2 text-xs">
+                    <span className="text-blue-400 font-bold mt-0.5 shrink-0">{j + 1}.</span>
+                    <div>
+                      <span className="text-white/70 font-medium">{step.step}</span>
+                      <div className="text-white/40 mt-0.5">
                         {step.output && <span>📦 {step.output}</span>}
+                        {step.output && step.estimatedTime && <span className="mx-1.5">·</span>}
                         {step.estimatedTime && <span>⏱ {step.estimatedTime}</span>}
                       </div>
                     </div>

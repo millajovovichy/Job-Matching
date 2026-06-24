@@ -24,30 +24,30 @@ export default function RadarChart({ dimensions }) {
 
   return (
     <div className="w-full h-full flex items-center justify-center">
-      <ResponsiveContainer width="100%" height={240}>
-        <ReRadarChart data={data} cx="50%" cy="50%" outerRadius="72%">
-          <PolarGrid stroke="#e7e5e4" strokeWidth={1} />
+      <ResponsiveContainer width="100%" height={280}>
+        <ReRadarChart data={data} cx="50%" cy="50%" outerRadius="75%">
+          <PolarGrid stroke="rgba(255,255,255,0.06)" strokeWidth={1} />
           <PolarAngleAxis
             dataKey="dimension"
-            tick={{ fontSize: 12, fill: '#44403c', fontWeight: 600 }}
+            tick={{ fontSize: 11, fill: '#e2e8f0', fontWeight: 600 }}
           />
           <PolarRadiusAxis
             angle={90}
             domain={[0, 100]}
-            tick={{ fontSize: 8, fill: '#a8a29e' }}
+            tick={{ fontSize: 8, fill: 'rgba(255,255,255,0.2)' }}
             axisLine={false}
             tickCount={5}
-            stroke="#f5f5f4"
+            stroke="rgba(255,255,255,0.04)"
           />
           <Radar
             name="匹配度"
             dataKey="score"
-            stroke="#3b82f6"
-            fill="#3b82f6"
-            fillOpacity={0.12}
+            stroke="#c4b5fd"
+            fill="#a78bfa"
+            fillOpacity={0.18}
             strokeWidth={2.5}
-            dot={{ r: 4.5, fill: '#fff', strokeWidth: 2.5, stroke: '#3b82f6' }}
-            activeDot={{ r: 6, fill: '#3b82f6', strokeWidth: 2, stroke: '#fff' }}
+            dot={{ r: 5, fill: '#0a0f1a', strokeWidth: 2.5, stroke: '#c4b5fd' }}
+            activeDot={{ r: 6, fill: '#c4b5fd', strokeWidth: 2, stroke: '#0a0f1a' }}
           />
         </ReRadarChart>
       </ResponsiveContainer>
