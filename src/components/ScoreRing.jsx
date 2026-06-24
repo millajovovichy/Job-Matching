@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 
-export default function ScoreRing({ score, comment }) {
+export default function ScoreRing({ score }) {
   const radius = 44;
   const circumference = 2 * Math.PI * radius;
   const [animatedScore, setAnimatedScore] = useState(0);
@@ -70,11 +70,6 @@ export default function ScoreRing({ score, comment }) {
           综合匹配度
         </text>
       </svg>
-
-      <div className="text-[10px] text-slate-600 leading-relaxed bg-stone-50 rounded-xl p-3 border-l-[3px] flex-1"
-           style={{ borderLeftColor: currentColor }}>
-        {comment}
-      </div>
     </div>
   );
 }

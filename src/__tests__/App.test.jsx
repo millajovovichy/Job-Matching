@@ -57,15 +57,15 @@ describe('App 集成测试', () => {
     const mockAPIResult = {
       overallScore: 85,
       dimensions: {
-        projectExperience: { score: 80, weight: 35, summary: 's' },
-        technicalSkills: { score: 85, weight: 28, summary: 's' },
-        domainMatch: { score: 90, weight: 15, summary: 's' },
-        softSkills: { score: 75, weight: 12, summary: 's' },
-        education: { score: 95, weight: 10, summary: 's' },
+        projectExperience: { score: 80, weight: 35, summary: '项目匹配度高' },
+        technicalSkills: { score: 85, weight: 28, summary: '技术栈匹配良好' },
+        domainMatch: { score: 90, weight: 15, summary: '行业经验契合' },
+        softSkills: { score: 75, weight: 12, summary: '软实力达标' },
+        education: { score: 95, weight: 10, summary: '学历优秀' },
       },
-      strengths: [{ point: 'p', dimension: 'd', detail: 'd' }],
-      weaknesses: [{ point: 'p', dimension: 'd', impact: 'i', isRequired: false }],
-      skillSuggestions: [{ skill: 's', reason: 'r', learningPath: ['1'] }],
+      strengths: [{ point: 'p', dimension: 'd', detail: 'd', jdHit: 'hit', coverage: 'cov' }],
+      weaknesses: [{ point: 'p', dimension: 'd', impact: 'i', severity: 'medium', gapAnalysis: 'gap' }],
+      skillSuggestions: [{ skill: 's', reason: 'r', learningPath: [{ step: '1', output: 'o', estimatedTime: '2d' }] }],
       overallComment: 'comment',
     };
 

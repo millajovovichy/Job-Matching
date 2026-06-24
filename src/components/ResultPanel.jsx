@@ -2,6 +2,8 @@ import ScoreRing from './ScoreRing';
 import RadarChart from './RadarChart';
 import BarLegend from './BarLegend';
 import AnalysisCards from './AnalysisCards';
+import OverallAssessment from './OverallAssessment';
+import ResumeOptimization from './ResumeOptimization';
 
 export default function ResultPanel({ result }) {
   if (!result) return null;
@@ -12,7 +14,7 @@ export default function ResultPanel({ result }) {
       <div className="flex flex-col md:flex-row md:flex-nowrap gap-4 items-stretch">
         {/* 评分环 */}
         <div className="w-44 flex-shrink-0">
-          <ScoreRing score={result.overallScore} comment={result.overallComment} />
+          <ScoreRing score={result.overallScore} />
         </div>
 
         {/* 雷达卡片：同一模块内含雷达图 + 柱形图例 */}
@@ -32,13 +34,27 @@ export default function ResultPanel({ result }) {
         </div>
       </div>
 
-      {/* 第二行：优势/短板/建议 三卡片并列 */}
+      {/* 第二行：优势/短板/补足路线图 三卡片并列 */}
       <div className="flex flex-col md:flex-row gap-3">
         <AnalysisCards
           strengths={result.strengths}
           weaknesses={result.weaknesses}
           skillSuggestions={result.skillSuggestions}
         />
+      </div>
+
+      {/* 第三行：综合评估（左）+ 简历优化（右） */}
+      <div className="flex flex-col md:flex-row gap-4">
+        <div className="flex-1 min-w-0">
+          <OverallAssessment
+            assessment={result.assessment}
+            recommendation={result.recommendation}
+            comment={result.overallComment}
+          />
+        </div>
+        <div className="flex-1 min-w-0">
+          <ResumeOptimization resumeSuggestions={result.resumeSuggestions} />
+        </div>
       </div>
     </div>
   );
