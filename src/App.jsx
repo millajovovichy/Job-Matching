@@ -1,13 +1,15 @@
 import { useMatchReducer } from './hooks/useMatchReducer';
 import { matchResumeWithJD } from './services/api';
+import { ApiKeyProvider, useApiKey } from './contexts/ApiKeyContext';
 import Header from './components/Header';
 import InputPanel from './components/InputPanel';
 import MatchButton from './components/MatchButton';
 import ResultPanel from './components/ResultPanel';
+import ApiKeyModal from './components/ApiKeyModal';
 
 const ERROR_MESSAGES = {
-  API_KEY_MISSING: '请配置 VITE_DEEPSEEK_API_KEY 环境变量',
-  API_KEY_INVALID: 'API Key 无效，请检查配置',
+  API_KEY_MISSING: '请点击右上角 🔑 设置你的 DeepSeek API Key',
+  API_KEY_INVALID: 'API Key 无效，请检查后重新设置',
   API_TIMEOUT: '请求超时，请检查网络后重试',
   API_RATE_LIMITED: '请求过于频繁，请稍后重试',
   API_NETWORK_ERROR: '网络连接失败，请检查网络',
@@ -15,17 +17,24 @@ const ERROR_MESSAGES = {
   API_RESPONSE_NOT_JSON: '结果解析失败，请重试',
 };
 
-export default function App() {
+function AppContent() {
   const { state, setResume, setJd, startMatch, matchSuccess, matchError } =
     useMatchReducer();
+  const { apiKey, openSettings } = useApiKey();
 
   const handleMatch = async () => {
     startMatch();
     try {
-      const result = await matchResumeWithJD(state.resumeText, state.jdText);
+      // apiKey may be empty — api.js falls back to server proxy automatically
+      const result = await matchResumeWithJD(state.resumeText, state.jdText, apiKey);
       matchSuccess(result);
     } catch (err) {
-      matchError(err.message || '匹配失败，请重试');
+      const msg = err.message || '匹配失败，请重试';
+      // If server proxy is down and no key set, prompt user to enter their own
+      if (msg === 'API_KEY_MISSING' || msg === 'API_KEY_INVALID') {
+        openSettings();
+      }
+      matchError(msg);
     }
   };
 
@@ -33,7 +42,10 @@ export default function App() {
 
   return (
     <div className="min-h-screen" style={{ background: '#030712' }}>
-      {/* 全局顶栏 — 深色半透明 */}
+      {/* API Key 弹窗 */}
+      <ApiKeyModal />
+
+      {/* 全局顶栏 */}
       <header
         className="border-b border-white/[0.06] px-6 h-14 flex items-center sticky top-0 z-20"
         style={{ background: 'rgba(3,7,18,0.85)', backdropFilter: 'blur(16px)' }}
@@ -69,5 +81,13 @@ export default function App() {
         <ResultPanel result={state.result} />
       </div>
     </div>
+  );
+}
+
+export default function App() {
+  return (
+    <ApiKeyProvider>
+      <AppContent />
+    </ApiKeyProvider>
   );
 }

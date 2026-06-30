@@ -1,5 +1,7 @@
 const DEEPSEEK_API_URL = 'https://api.deepseek.com/v1/chat/completions';
 
+// ─── Prompt (shared between direct call and proxy) ────────────────────
+
 const SYSTEM_PROMPT = `你是一个专业的简历-岗位匹配评估系统。你的任务是分析候选人与岗位描述的匹配程度，并以严格的JSON格式输出结果。
 
 ## 评估维度与权重
@@ -100,11 +102,9 @@ ${jdText}`;
 }
 
 function parseResponse(content) {
-  // 尝试直接解析 JSON
   try {
     return JSON.parse(content);
   } catch {
-    // 尝试提取 markdown 代码块中的 JSON
     const match = content.match(/```(?:json)?\s*([\s\S]*?)```/);
     if (match) {
       return JSON.parse(match[1].trim());
@@ -113,12 +113,12 @@ function parseResponse(content) {
   }
 }
 
+// ─── Validation (same regardless of call path) ───────────────────────
+
 function validateResult(data) {
-  // overallScore
   if (typeof data.overallScore !== 'number' || data.overallScore < 0 || data.overallScore > 100) {
     throw new Error('API_RESPONSE_INVALID: overallScore');
   }
-  // dimensions
   const dims = ['projectExperience', 'technicalSkills', 'domainMatch', 'softSkills', 'education'];
   for (const key of dims) {
     const d = data.dimensions?.[key];
@@ -126,76 +126,57 @@ function validateResult(data) {
       throw new Error(`API_RESPONSE_INVALID: dimensions.${key}`);
     }
   }
-  // arrays (required)
   if (!Array.isArray(data.strengths) || !Array.isArray(data.weaknesses) || !Array.isArray(data.skillSuggestions)) {
     throw new Error('API_RESPONSE_INVALID: arrays');
   }
-  // overallComment (required for backward compat)
   if (typeof data.overallComment !== 'string') {
     throw new Error('API_RESPONSE_INVALID: overallComment');
   }
 
   // --- optional new fields: provide defaults if missing ---
-
-  // strengths: jdHit + coverage (optional)
   data.strengths = data.strengths.map(s => ({
     jdHit: s.jdHit || '',
     coverage: s.coverage || '',
     ...s,
   }));
-
-  // weaknesses: severity + gapAnalysis (optional), migrate isRequired → severity
   data.weaknesses = data.weaknesses.map(w => {
     if (!w.severity) {
-      // backward compat: migrate old isRequired field
       w.severity = w.isRequired ? 'critical' : 'medium';
     }
     w.gapAnalysis = w.gapAnalysis || w.impact || '';
     return w;
   });
-
-  // skillSuggestions: learningPath objects (optional), migrate string[] → [{step, output, estimatedTime}]
   data.skillSuggestions = data.skillSuggestions.map(s => ({
     ...s,
     learningPath: Array.isArray(s.learningPath)
-      ? s.learningPath.map((item, idx) =>
+      ? s.learningPath.map((item) =>
           typeof item === 'string'
             ? { step: item, output: '', estimatedTime: '' }
             : { step: item.step || '', output: item.output || '', estimatedTime: item.estimatedTime || '' }
         )
       : [],
   }));
-
-  // resumeSuggestions (optional, default to empty)
   if (!Array.isArray(data.resumeSuggestions)) {
     data.resumeSuggestions = [];
   }
-
-  // assessment (optional, fall back to overallComment)
   if (!data.assessment || typeof data.assessment !== 'object') {
     data.assessment = {
       matchAnalysis: data.overallComment || '',
       successProbability: data.overallScore >= 80 ? '较高' : data.overallScore >= 60 ? '中等' : '较低',
     };
   }
-
-  // recommendation (optional, default)
   if (!data.recommendation || typeof data.recommendation !== 'object') {
     data.recommendation = {
       verdict: data.overallScore >= 70 ? '建议投递' : data.overallScore >= 50 ? '谨慎考虑' : '建议观望',
       reasonsToReject: [],
     };
   }
-
   return data;
 }
 
-export async function matchResumeWithJD(resumeText, jdText) {
-  const apiKey = import.meta.env.VITE_DEEPSEEK_API_KEY;
-  if (!apiKey) {
-    throw new Error('API_KEY_MISSING');
-  }
+// ─── Direct DeepSeek call (dev with .env key, or user's own key) ────
 
+async function callDeepSeekDirect(resumeText, jdText, apiKey) {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 30000);
 
@@ -229,12 +210,67 @@ export async function matchResumeWithJD(resumeText, jdText) {
     const content = json.choices?.[0]?.message?.content;
     if (!content) throw new Error('API_RESPONSE_EMPTY');
 
-    const parsed = parseResponse(content);
-    return validateResult(parsed);
+    return validateResult(parseResponse(content));
   } catch (err) {
     clearTimeout(timeoutId);
     if (err.name === 'AbortError') throw new Error('API_TIMEOUT');
     if (err.message.startsWith('API_')) throw err;
     throw new Error('API_NETWORK_ERROR');
   }
+}
+
+// ─── Server proxy call (production — Netlify Function) ───────────────
+
+async function callProxy(resumeText, jdText) {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 35000);
+
+  try {
+    const response = await fetch('/api/match', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ resumeText, jdText }),
+      signal: controller.signal,
+    });
+
+    clearTimeout(timeoutId);
+
+    if (!response.ok) {
+      const body = await response.json().catch(() => ({}));
+      const error = body.error || `API_ERROR_${response.status}`;
+      if (error === 'API_KEY_INVALID') throw new Error('API_KEY_INVALID');
+      if (error === 'API_RATE_LIMITED') throw new Error('API_RATE_LIMITED');
+      if (error === 'API_TIMEOUT') throw new Error('API_TIMEOUT');
+      throw new Error(error);
+    }
+
+    const data = await response.json();
+    return validateResult(data);
+  } catch (err) {
+    clearTimeout(timeoutId);
+    if (err.name === 'AbortError') throw new Error('API_TIMEOUT');
+    if (err.message.startsWith('API_')) throw err;
+    throw new Error('API_NETWORK_ERROR');
+  }
+}
+
+// ─── Public API ──────────────────────────────────────────────────────
+
+/**
+ * Match a resume against a job description.
+ *
+ * Resolution order:
+ *   1. userApiKey provided → call DeepSeek directly with user's own key
+ *   2. VITE_DEEPSEEK_API_KEY env var set → call DeepSeek directly (dev mode)
+ *   3. Neither → POST /api/match server proxy (production — Netlify Function
+ *      uses server-side DEEPSEEK_API_KEY)
+ */
+export async function matchResumeWithJD(resumeText, jdText, userApiKey) {
+  const directKey = userApiKey || import.meta.env.VITE_DEEPSEEK_API_KEY;
+
+  if (directKey) {
+    return callDeepSeekDirect(resumeText, jdText, directKey);
+  }
+
+  return callProxy(resumeText, jdText);
 }

@@ -1,0 +1,12 @@
+[build]
+  command = "npm run build"
+  publish = "dist/"
+
+[functions]
+  directory = "netlify/functions"
+
+# Proxy /api/match → netlify/functions/match.js
+[[redirects]]
+  from = "/api/match"
+  to = "/.netlify/functions/match"
+  status = 200
