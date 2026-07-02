@@ -24,7 +24,7 @@ describe('App 集成测试', () => {
     expect(screen.getByText('岗位描述 (JD)')).toBeInTheDocument();
     expect(screen.getByText('开始匹配分析')).toBeInTheDocument();
     // Demo 结果区
-    expect(screen.getByText('78')).toBeInTheDocument();
+    expect(screen.getByText('80')).toBeInTheDocument();
     expect(screen.getByText('综合匹配度')).toBeInTheDocument();
   });
 
