@@ -584,9 +584,8 @@ async function callProxy(resumeText, jdText) {
 }
 
 /**
- * Streaming proxy: sends stream=true to the Netlify Function.
- * The function uses Dify streaming internally (avoids timeout) but returns JSON.
- * We simulate progress stages since we don't get real-time SSE from the proxy.
+ * Proxy call with simulated progress (production — Netlify Function uses blocking mode).
+ * The skeleton shows staged progress while waiting for the standard JSON response.
  */
 async function callProxyStreaming(resumeText, jdText, { onProgress, signal }) {
   console.log('[Proxy Streaming] 开始 — resume chars:', resumeText?.length, '| JD chars:', jdText?.length);
@@ -601,7 +600,7 @@ async function callProxyStreaming(resumeText, jdText, { onProgress, signal }) {
   const response = await fetch('/api/match', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ resumeText, jdText, stream: true }),
+    body: JSON.stringify({ resumeText, jdText }),
     signal,
   });
 

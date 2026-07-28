@@ -43,7 +43,7 @@ export default async function handler(req, context) {
 
   try {
     const body = await req.json();
-    const { resumeText, jdText, userApiKey, stream: useStreaming } = body;
+    const { resumeText, jdText, userApiKey } = body;
 
     // ─── Reset token check ──────────────────────────────────────────
     const resetHeader = req.headers.get('x-reset-token');
@@ -87,12 +87,6 @@ export default async function handler(req, context) {
 
     if (!apiKey) {
       return jsonResponse({ error: 'No API key available' }, 500);
-    }
-    // ────────────────────────────────────────────────────────────────
-
-    // ─── Streaming mode (SSE proxy) ─────────────────────────────────
-    if (useStreaming) {
-      return handleStreaming(resumeText, jdText, apiKey, ip, ipCount);
     }
     // ────────────────────────────────────────────────────────────────
 
@@ -187,142 +181,6 @@ export default async function handler(req, context) {
     }
     return jsonResponse({ error: 'API_NETWORK_ERROR' }, 500);
   }
-}
-
-// ─── Streaming handler ────────────────────────────────────────────────
-
-async function handleStreaming(resumeText, jdText, apiKey, ip, ipCount) {
-  // Call Dify in streaming mode
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 120000); // 120s for streaming
-
-  let difyResponse;
-  try {
-    difyResponse = await fetch(DIFY_WORKFLOW_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
-        inputs: { resume: resumeText, JD: jdText },
-        response_mode: 'streaming',
-        user: 'resume-jd-matcher',
-      }),
-      signal: controller.signal,
-    });
-  } catch (err) {
-    clearTimeout(timeoutId);
-    if (err.name === 'AbortError') {
-      return jsonResponse({ error: 'API_TIMEOUT' }, 504);
-    }
-    return jsonResponse({ error: 'API_NETWORK_ERROR' }, 500);
-  }
-
-  clearTimeout(timeoutId);
-
-  if (!difyResponse.ok) {
-    if (difyResponse.status === 401) return jsonResponse({ error: 'API_KEY_INVALID' }, 401);
-    if (difyResponse.status === 429) return jsonResponse({ error: 'API_RATE_LIMITED' }, 429);
-    return jsonResponse({ error: `API_ERROR_${difyResponse.status}` }, 502);
-  }
-
-  // Read the entire streaming response, parse SSE events, and
-  // relay them to the client. We also accumulate the final output
-  // so we can inject quota info at the end.
-  const reader = difyResponse.body.getReader();
-  const encoder = new TextEncoder();
-  const decoder = new TextDecoder();
-
-  let buffer = '';
-  let finalOutputs = null;
-  let streamError = null;
-
-  try {
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-
-      buffer += decoder.decode(value, { stream: true });
-      const parts = buffer.split('\n\n');
-      buffer = parts.pop() || '';
-
-      for (const part of parts) {
-        if (!part.trim()) continue;
-        const dataLines = part.split('\n').filter(l => l.startsWith('data: '));
-        for (const line of dataLines) {
-          try {
-            const event = JSON.parse(line.slice(6));
-            if (event.event === 'workflow_finished') {
-              if (event.data?.status === 'failed') {
-                streamError = event.data?.error || '工作流执行失败';
-              } else {
-                finalOutputs = event.data?.outputs || null;
-              }
-            } else if (event.event === 'error') {
-              streamError = event.data?.message || 'Stream error';
-            }
-          } catch { /* skip malformed */ }
-        }
-      }
-    }
-  } finally {
-    reader.releaseLock();
-  }
-
-  if (streamError) {
-    return jsonResponse({ error: 'API_WORKFLOW_FAILED', message: streamError }, 502);
-  }
-
-  if (!finalOutputs) {
-    return jsonResponse({ error: 'API_RESPONSE_EMPTY' }, 502);
-  }
-
-  // Extract result from outputs
-  const result = finalOutputs.result || finalOutputs.text || finalOutputs.output || finalOutputs.json
-    || Object.values(finalOutputs).find(v => typeof v === 'string' || typeof v === 'object');
-
-  if (!result) {
-    return jsonResponse({ error: 'API_RESPONSE_EMPTY' }, 502);
-  }
-
-  // Parse the result (same logic as blocking mode)
-  let parsed;
-  if (typeof result === 'string') {
-    if (/^(匹配|简历优化|技能补足)/m.test(result.trim())) {
-      parsed = parseWorkflowOutput(result);
-    } else {
-      try {
-        parsed = JSON.parse(result);
-      } catch {
-        const match = result.match(/```(?:json)?\s*([\s\S]*?)```/);
-        if (match) {
-          parsed = JSON.parse(match[1].trim());
-        } else {
-          return jsonResponse({ error: 'API_RESPONSE_NOT_JSON' }, 502);
-        }
-      }
-    }
-  } else {
-    parsed = result;
-  }
-
-  if (!parsed || typeof parsed !== 'object') {
-    return jsonResponse({ error: 'API_RESPONSE_NOT_JSON' }, 502);
-  }
-
-  // Increment counters on success
-  totalCalls++;
-  ipCounts.set(ip, ipCount + 1);
-
-  const quota = {
-    totalRemaining: LIMIT_TOTAL - totalCalls,
-    ipRemaining: LIMIT_PER_IP - (ipCount + 1),
-    totalLimit: LIMIT_TOTAL,
-    ipLimit: LIMIT_PER_IP,
-  };
-
-  return jsonResponse({ ...parsed, quota }, 200);
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────────
