@@ -5,6 +5,9 @@
 [functions]
   directory = "netlify/functions"
 
+[functions.match]
+  timeout = 60
+
 # Proxy /api/match → netlify/functions/match.js
 [[redirects]]
   from = "/api/match"

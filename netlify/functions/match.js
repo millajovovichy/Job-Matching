@@ -119,7 +119,13 @@ export default async function handler(req, context) {
     const outputs = json.data?.outputs;
 
     if (!outputs) {
-      return jsonResponse({ error: 'API_RESPONSE_EMPTY' }, 502);
+      // Diagnostic: return what Dify actually returned
+      return jsonResponse({
+        error: 'API_RESPONSE_EMPTY',
+        difyStatus: json.data?.status,
+        difyError: json.data?.error,
+        difyKeys: json.data ? Object.keys(json.data) : 'no data',
+      }, 502);
     }
 
     // Parse Dify workflow output (multi-section text or JSON)

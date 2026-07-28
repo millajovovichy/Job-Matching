@@ -454,9 +454,11 @@ async function callProxy(resumeText, jdText) {
     }
 
     const data = await response.json();
+    console.log('[Proxy] 收到响应 — score:', data.overallScore, '| quota:', JSON.stringify(data.quota));
     const { quota, ...matchingData } = data;
     const validated = validateResult(matchingData);
     if (quota) validated.quota = quota;
+    console.log('[Proxy] 处理后 — validated.quota:', JSON.stringify(validated.quota));
     return validated;
   } catch (err) {
     clearTimeout(timeoutId);
