@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { matchResumeWithJD } from '../services/api';
+import { matchResumeWithJD, matchResumeWithJDStreaming } from '../services/api';
 
 // Mock import.meta.env
 vi.stubEnv('VITE_DIFY_API_KEY', 'app-test-key-123');
@@ -93,5 +93,92 @@ describe('matchResumeWithJD', () => {
     fetch.mockRejectedValueOnce({ name: 'AbortError' });
 
     await expect(matchResumeWithJD('简历', 'JD')).rejects.toThrow('API_TIMEOUT');
+  });
+});
+
+describe('matchResumeWithJDStreaming', () => {
+  beforeEach(() => {
+    global.fetch = vi.fn();
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it('通过 ReadableStream 获取流式结果并返回校验后的数据', async () => {
+    // Create a mock ReadableStream that simulates Dify SSE events
+    const streamEvents = [
+      'data: {"event":"workflow_started","task_id":"t1","data":{"id":"r1","workflow_id":"w1"}}\n\n',
+      'data: {"event":"node_started","task_id":"t1","data":{"node_type":"llm","title":"匹配分析"}}\n\n',
+      'data: {"event":"node_finished","task_id":"t1","data":{"node_type":"llm","title":"匹配分析"}}\n\n',
+      `data: {"event":"workflow_finished","task_id":"t1","data":{"status":"finished","outputs":{"result":${JSON.stringify(JSON.stringify(mockResult))}}}}\n\n`,
+    ];
+
+    let chunkIndex = 0;
+    const mockStream = new ReadableStream({
+      pull(controller) {
+        if (chunkIndex < streamEvents.length) {
+          controller.enqueue(new TextEncoder().encode(streamEvents[chunkIndex]));
+          chunkIndex++;
+        } else {
+          controller.close();
+        }
+      },
+    });
+
+    fetch.mockResolvedValueOnce({
+      ok: true,
+      body: mockStream,
+    });
+
+    const onProgress = vi.fn();
+    const result = await matchResumeWithJDStreaming('简历', 'JD', undefined, { onProgress });
+
+    expect(result.overallScore).toBe(78);
+    // Should have called progress for started, analyzing, finished
+    expect(onProgress).toHaveBeenCalled();
+  });
+
+  it('流式调用 401 响应抛出 API_KEY_INVALID', async () => {
+    fetch.mockResolvedValueOnce({ ok: false, status: 401 });
+
+    await expect(
+      matchResumeWithJDStreaming('简历401测试', 'JD401测试', undefined, { onProgress: vi.fn() })
+    ).rejects.toThrow('API_KEY_INVALID');
+  });
+
+  it('缓存命中时直接返回结果不发起请求', async () => {
+    // First call — needs to go through streaming
+    const streamEvents = [
+      'data: {"event":"workflow_started","task_id":"t1"}\n\n',
+      `data: {"event":"workflow_finished","task_id":"t1","data":{"status":"finished","outputs":{"result":${JSON.stringify(JSON.stringify(mockResult))}}}}\n\n`,
+    ];
+
+    let chunkIndex = 0;
+    const mockStream = new ReadableStream({
+      pull(controller) {
+        if (chunkIndex < streamEvents.length) {
+          controller.enqueue(new TextEncoder().encode(streamEvents[chunkIndex]));
+          chunkIndex++;
+        } else {
+          controller.close();
+        }
+      },
+    });
+
+    fetch.mockResolvedValueOnce({
+      ok: true,
+      body: mockStream,
+    });
+
+    const result1 = await matchResumeWithJDStreaming('简历缓存', 'JD缓存', undefined, { onProgress: vi.fn() });
+    expect(result1.overallScore).toBe(78);
+    expect(fetch).toHaveBeenCalledTimes(1);
+
+    // Second call with same input — should hit cache, no fetch
+    const result2 = await matchResumeWithJDStreaming('简历缓存', 'JD缓存', undefined, { onProgress: vi.fn() });
+    expect(result2.overallScore).toBe(78);
+    // fetch still only called once (cache hit, no new request)
+    expect(fetch).toHaveBeenCalledTimes(1);
   });
 });

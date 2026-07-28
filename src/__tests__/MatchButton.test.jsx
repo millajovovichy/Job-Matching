@@ -9,10 +9,20 @@ describe('MatchButton', () => {
     expect(screen.getByText('开始匹配分析')).toBeInTheDocument();
   });
 
-  it('isLoading 时显示 spinner 并禁用按钮', () => {
-    render(<MatchButton isLoading={true} onMatch={vi.fn()} hasContent={true} />);
-    expect(screen.getByText('分析中...')).toBeInTheDocument();
-    expect(screen.getByRole('button')).toBeDisabled();
+  it('isLoading 时显示取消按钮并可点击', () => {
+    const onCancel = vi.fn();
+    render(<MatchButton isLoading={true} onMatch={vi.fn()} onCancel={onCancel} hasContent={true} />);
+    expect(screen.getByText('取消分析')).toBeInTheDocument();
+    // 按钮不再 disabled，可以点击取消
+    expect(screen.getByRole('button')).not.toBeDisabled();
+  });
+
+  it('isLoading 时点击按钮触发 onCancel', async () => {
+    const user = userEvent.setup();
+    const onCancel = vi.fn();
+    render(<MatchButton isLoading={true} onMatch={vi.fn()} onCancel={onCancel} hasContent={true} />);
+    await user.click(screen.getByRole('button'));
+    expect(onCancel).toHaveBeenCalledTimes(1);
   });
 
   it('内容为空时点击显示错误提示', async () => {

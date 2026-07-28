@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import App from '../App';
+import { matchResumeWithJDStreaming } from '../services/api';
 
 // Mock pdfjs-dist worker
 vi.mock('pdfjs-dist', () => ({
@@ -9,12 +10,14 @@ vi.mock('pdfjs-dist', () => ({
   GlobalWorkerOptions: { workerSrc: '' },
 }));
 
-// Mock env for API key so matchResumeWithJD doesn't throw API_KEY_MISSING
-vi.stubEnv('VITE_DIFY_API_KEY', 'app-test-key-for-integration');
+// Mock the streaming API
+vi.mock('../services/api', () => ({
+  matchResumeWithJDStreaming: vi.fn(),
+}));
 
 describe('App 集成测试', () => {
   beforeEach(() => {
-    global.fetch = vi.fn();
+    vi.clearAllMocks();
   });
 
   it('初始渲染显示 Demo 数据和示例标签', () => {
@@ -53,6 +56,23 @@ describe('App 集成测试', () => {
     expect(screen.getByText('请上传简历并粘贴岗位描述')).toBeInTheDocument();
   });
 
+  it('点击匹配后显示 LoadingSkeleton', async () => {
+    // Make the API call hang (never resolve) so we can check loading state
+    matchResumeWithJDStreaming.mockImplementationOnce(
+      () => new Promise(() => {}) // never resolves
+    );
+
+    const user = userEvent.setup();
+    render(<App />);
+
+    await user.click(screen.getByText('开始匹配分析'));
+
+    // 取消按钮应该出现（MatchButton 和 LoadingSkeleton 各有一个）
+    await waitFor(() => {
+      expect(screen.getAllByText('取消分析').length).toBeGreaterThanOrEqual(1);
+    });
+  });
+
   it('API 匹配成功后 isDemo 标签隐藏', async () => {
     const mockAPIResult = {
       overallScore: 85,
@@ -69,17 +89,8 @@ describe('App 集成测试', () => {
       overallComment: 'comment',
     };
 
-    fetch.mockResolvedValueOnce({
-      ok: true,
-      json: () =>
-        Promise.resolve({
-          data: {
-            outputs: {
-              result: JSON.stringify(mockAPIResult),
-            },
-          },
-        }),
-    });
+    // The streaming API resolves immediately with the result
+    matchResumeWithJDStreaming.mockResolvedValueOnce(mockAPIResult);
 
     const user = userEvent.setup();
     render(<App />);
@@ -94,7 +105,7 @@ describe('App 集成测试', () => {
       expect(screen.queryByText('示例数据')).not.toBeInTheDocument();
     });
 
-    // 新分数应该显示（可能出现在评分环和柱形图例两处）
+    // 新分数应该显示
     await waitFor(() => {
       expect(screen.getAllByText('85').length).toBeGreaterThanOrEqual(1);
     });

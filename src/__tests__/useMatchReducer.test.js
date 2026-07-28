@@ -43,4 +43,29 @@ describe('useMatchReducer', () => {
     expect(result.current.state.error).toBe('网络错误');
     expect(result.current.state.isLoading).toBe(false);
   });
+
+  it('START_MATCH 设置 matchStartTime', () => {
+    const { result } = renderHook(() => useMatchReducer());
+    act(() => result.current.startMatch());
+    expect(result.current.state.matchStartTime).toBeGreaterThan(0);
+    expect(result.current.state.streamStage).toBeNull();
+  });
+
+  it('MATCH_PROGRESS 更新 streamStage', () => {
+    const { result } = renderHook(() => useMatchReducer());
+    act(() => result.current.startMatch());
+    act(() => result.current.streamProgress({ stage: 'analyzing', message: '正在分析...' }));
+    expect(result.current.state.streamStage).toEqual({ stage: 'analyzing', message: '正在分析...' });
+    expect(result.current.state.isLoading).toBe(true);
+  });
+
+  it('MATCH_SUCCESS 清理 streamStage 和 matchStartTime', () => {
+    const { result } = renderHook(() => useMatchReducer());
+    act(() => result.current.startMatch());
+    act(() => result.current.streamProgress({ stage: 'finished', message: '完成' }));
+    act(() => result.current.matchSuccess({ overallScore: 90 }));
+    expect(result.current.state.streamStage).toBeNull();
+    expect(result.current.state.matchStartTime).toBeNull();
+    expect(result.current.state.isLoading).toBe(false);
+  });
 });

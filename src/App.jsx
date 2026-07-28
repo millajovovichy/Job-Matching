@@ -1,10 +1,12 @@
+import { useRef } from 'react';
 import { useMatchReducer } from './hooks/useMatchReducer';
-import { matchResumeWithJD } from './services/api';
+import { matchResumeWithJDStreaming } from './services/api';
 import { ApiKeyProvider, useApiKey } from './contexts/ApiKeyContext';
 import Header from './components/Header';
 import InputPanel from './components/InputPanel';
 import MatchButton from './components/MatchButton';
 import ResultPanel from './components/ResultPanel';
+import LoadingSkeleton from './components/LoadingSkeleton';
 import ApiKeyModal from './components/ApiKeyModal';
 
 const ERROR_MESSAGES = {
@@ -20,23 +22,52 @@ const ERROR_MESSAGES = {
 };
 
 function AppContent() {
-  const { state, setResume, setJd, startMatch, matchSuccess, matchError } =
+  const { state, setResume, setJd, startMatch, streamProgress, matchSuccess, matchError } =
     useMatchReducer();
   const { apiKey, openSettings } = useApiKey();
+  const abortRef = useRef(null);
 
   const handleMatch = async () => {
+    // Cancel any in-flight request
+    if (abortRef.current) {
+      abortRef.current.abort();
+    }
+
+    const controller = new AbortController();
+    abortRef.current = controller;
+
     startMatch();
+
     try {
-      // apiKey may be empty — api.js falls back to server proxy automatically
-      const result = await matchResumeWithJD(state.resumeText, state.jdText, apiKey);
+      const result = await matchResumeWithJDStreaming(
+        state.resumeText,
+        state.jdText,
+        apiKey,
+        {
+          onProgress: (p) => streamProgress(p),
+          signal: controller.signal,
+        }
+      );
       matchSuccess(result);
     } catch (err) {
-      const msg = err.message || '匹配失败，请重试';
-      // If server proxy is down and no key set, prompt user to enter their own
-      if (msg === 'API_KEY_MISSING' || msg === 'API_KEY_INVALID') {
-        openSettings();
+      // User cancelled — just reset quietly, keep previous result
+      if (err.name === 'AbortError') {
+        matchError('CANCELLED');
+      } else {
+        const msg = err.message || '匹配失败，请重试';
+        if (msg === 'API_KEY_MISSING' || msg === 'API_KEY_INVALID') {
+          openSettings();
+        }
+        matchError(msg);
       }
-      matchError(msg);
+    } finally {
+      abortRef.current = null;
+    }
+  };
+
+  const handleCancel = () => {
+    if (abortRef.current) {
+      abortRef.current.abort();
     }
   };
 
@@ -63,9 +94,14 @@ function AppContent() {
           onResumeChange={setResume}
           onJdChange={setJd}
         />
-        <MatchButton isLoading={state.isLoading} onMatch={handleMatch} hasContent={hasContent} />
+        <MatchButton
+          isLoading={state.isLoading}
+          onMatch={handleMatch}
+          onCancel={handleCancel}
+          hasContent={hasContent}
+        />
 
-        {state.error && (
+        {state.error && state.error !== 'CANCELLED' && (
           <div className="mb-4 flex items-center justify-between bg-red-500/10 border border-red-500/20 rounded-2xl px-5 py-3.5 text-sm animate-fade-in-up">
             <span className="text-red-300 flex items-center gap-2">
               <i className="fas fa-circle-exclamation text-red-400"></i>
@@ -80,7 +116,15 @@ function AppContent() {
           </div>
         )}
 
-        <ResultPanel result={state.result} />
+        {state.isLoading ? (
+          <LoadingSkeleton
+            streamStage={state.streamStage}
+            startTime={state.matchStartTime}
+            onCancel={handleCancel}
+          />
+        ) : (
+          <ResultPanel result={state.result} />
+        )}
       </div>
     </div>
   );

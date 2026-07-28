@@ -360,6 +360,29 @@ function mapWorkflowResult(data) {
   return data;
 }
 
+// ─── Shared result extraction ──────────────────────────────────────────
+
+function extractAndParseResult(outputs) {
+  const result = outputs.result || outputs.text || outputs.output || outputs.json
+    || Object.values(outputs).find(v => typeof v === 'string' || typeof v === 'object');
+  if (!result) throw new Error('API_RESPONSE_EMPTY');
+
+  let parsed;
+  if (typeof result === 'string') {
+    if (/^(匹配|简历优化|技能补足)/m.test(result.trim())) {
+      parsed = parseWorkflowOutput(result);
+    } else {
+      parsed = parseResponse(result);
+    }
+  } else {
+    parsed = result;
+  }
+  if (!parsed || typeof parsed !== 'object') throw new Error('API_RESPONSE_NOT_JSON');
+
+  const mapped = mapWorkflowResult(parsed);
+  return validateResult(mapped);
+}
+
 // ─── Direct Dify call (dev with .env key, or user's own key) ────────
 
 async function callDifyDirect(resumeText, jdText, apiKey) {
@@ -391,30 +414,10 @@ async function callDifyDirect(resumeText, jdText, apiKey) {
     }
 
     const json = await response.json();
-    // Dify workflow response: { data: { outputs: { ... } } }
     const outputs = json.data?.outputs;
     if (!outputs) throw new Error('API_RESPONSE_EMPTY');
 
-    // 工作流输出可能是 JSON 字符串或已解析的对象
-    const result = outputs.result || outputs.text || outputs.output || outputs.json
-      || Object.values(outputs).find(v => typeof v === 'string' || typeof v === 'object');
-    if (!result) throw new Error('API_RESPONSE_EMPTY');
-
-    let parsed;
-    if (typeof result === 'string') {
-      // 检测多段文本格式（匹配/简历优化/技能补足）
-      if (/^(匹配|简历优化|技能补足)/m.test(result.trim())) {
-        parsed = parseWorkflowOutput(result);
-      } else {
-        parsed = parseResponse(result);
-      }
-    } else {
-      parsed = result;
-    }
-    if (!parsed || typeof parsed !== 'object') throw new Error('API_RESPONSE_NOT_JSON');
-
-    const mapped = mapWorkflowResult(parsed);
-    const validated = validateResult(mapped);
+    const validated = extractAndParseResult(outputs);
     console.log('[Dify] 调用成功 — score:', validated.overallScore, '| resumeSug:', validated.resumeSuggestions?.length, '| skillSug:', validated.skillSuggestions?.length);
     return validated;
   } catch (err) {
@@ -424,6 +427,118 @@ async function callDifyDirect(resumeText, jdText, apiKey) {
     if (err.message.startsWith('API_')) throw err;
     throw new Error('API_NETWORK_ERROR');
   }
+}
+
+// ─── Streaming Dify call ───────────────────────────────────────────────
+
+/**
+ * Call Dify workflow in streaming mode, reading SSE events.
+ *
+ * @param {string} resumeText
+ * @param {string} jdText
+ * @param {string} apiKey
+ * @param {{ onProgress: (evt: {stage:string, message:string}) => void, signal?: AbortSignal }} callbacks
+ * @returns {Promise<object>} validated match result
+ */
+async function callDifyStreaming(resumeText, jdText, apiKey, { onProgress, signal }) {
+  console.log('[Dify Streaming] 开始 — resume chars:', resumeText?.length, '| JD chars:', jdText?.length);
+
+  const response = await fetch(DIFY_WORKFLOW_URL, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${apiKey}`,
+    },
+    body: JSON.stringify({
+      inputs: { resume: resumeText, JD: jdText },
+      response_mode: 'streaming',
+      user: 'resume-jd-matcher',
+    }),
+    signal,
+  });
+
+  if (!response.ok) {
+    if (response.status === 401) throw new Error('API_KEY_INVALID');
+    if (response.status === 429) throw new Error('API_RATE_LIMITED');
+    throw new Error(`API_ERROR_${response.status}`);
+  }
+
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = '';
+
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      buffer += decoder.decode(value, { stream: true });
+
+      // SSE events are separated by \n\n
+      const parts = buffer.split('\n\n');
+      buffer = parts.pop() || ''; // keep incomplete last chunk
+
+      for (const part of parts) {
+        if (!part.trim()) continue;
+
+        // Extract data lines
+        const dataLines = part.split('\n').filter(l => l.startsWith('data: '));
+        for (const line of dataLines) {
+          try {
+            const event = JSON.parse(line.slice(6));
+            switch (event.event) {
+              case 'workflow_started':
+                onProgress({ stage: 'started', message: '连接分析引擎...' });
+                break;
+
+              case 'node_started': {
+                const nodeType = event.data?.node_type;
+                const nodeTitle = event.data?.title || '';
+                if (nodeType === 'llm') {
+                  onProgress({ stage: 'analyzing', message: `正在${nodeTitle || '分析'}...` });
+                } else if (nodeType === 'code') {
+                  onProgress({ stage: 'processing', message: `正在${nodeTitle || '整理结果'}...` });
+                }
+                break;
+              }
+
+              case 'workflow_finished': {
+                const status = event.data?.status;
+                if (status === 'failed') {
+                  const errMsg = event.data?.error || '工作流执行失败';
+                  throw new Error(`API_WORKFLOW_FAILED: ${errMsg}`);
+                }
+                const outputs = event.data?.outputs;
+                if (!outputs) throw new Error('API_RESPONSE_EMPTY');
+
+                onProgress({ stage: 'finished', message: '分析完成，正在呈现结果...' });
+
+                const validated = extractAndParseResult(outputs);
+                console.log('[Dify Streaming] 成功 — score:', validated.overallScore);
+                return validated;
+              }
+
+              case 'error':
+                throw new Error(event.data?.message || 'API_STREAM_ERROR');
+            }
+          } catch (err) {
+            // If it's our own throw (workflow_finished result), re-throw it
+            if (err.message.startsWith('API_') && !err.message.startsWith('API_STREAM_ERROR')) {
+              throw err;
+            }
+            // Otherwise skip malformed events (but log them)
+            if (!err.message.startsWith('API_')) {
+              console.warn('[Dify Streaming] 跳过异常事件:', err.message);
+            }
+          }
+        }
+      }
+    }
+  } finally {
+    reader.releaseLock();
+  }
+
+  throw new Error('API_STREAM_ENDED_WITHOUT_RESULT');
 }
 
 // ─── Server proxy call (production — Netlify Function) ───────────────
@@ -468,6 +583,83 @@ async function callProxy(resumeText, jdText) {
   }
 }
 
+/**
+ * Streaming proxy: sends stream=true to the Netlify Function.
+ * The function uses Dify streaming internally (avoids timeout) but returns JSON.
+ * We simulate progress stages since we don't get real-time SSE from the proxy.
+ */
+async function callProxyStreaming(resumeText, jdText, { onProgress, signal }) {
+  console.log('[Proxy Streaming] 开始 — resume chars:', resumeText?.length, '| JD chars:', jdText?.length);
+
+  onProgress?.({ stage: 'started', message: '连接分析引擎...' });
+
+  // Brief delay so the "started" stage is visible
+  await new Promise(r => setTimeout(r, 300));
+
+  onProgress?.({ stage: 'analyzing', message: '正在分析匹配维度...' });
+
+  const response = await fetch('/api/match', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ resumeText, jdText, stream: true }),
+    signal,
+  });
+
+  if (!response.ok) {
+    const body = await response.json().catch(() => ({}));
+    const error = body.error || `API_ERROR_${response.status}`;
+    if (error === 'API_KEY_INVALID') throw new Error('API_KEY_INVALID');
+    if (error === 'API_RATE_LIMITED') throw new Error('API_RATE_LIMITED');
+    if (error === 'USAGE_LIMIT_REACHED') throw new Error('USAGE_LIMIT_REACHED');
+    if (error === 'IP_LIMIT_REACHED') throw new Error('IP_LIMIT_REACHED');
+    throw new Error(error);
+  }
+
+  onProgress?.({ stage: 'processing', message: '正在整理分析结果...' });
+
+  const data = await response.json();
+  console.log('[Proxy Streaming] 收到响应 — score:', data.overallScore, '| quota:', JSON.stringify(data.quota));
+  const { quota, ...matchingData } = data;
+  const validated = validateResult(matchingData);
+  if (quota) validated.quota = quota;
+
+  onProgress?.({ stage: 'finished', message: '分析完成，正在呈现结果...' });
+  console.log('[Proxy Streaming] 成功 — score:', validated.overallScore);
+  return validated;
+}
+
+// ─── Cache ─────────────────────────────────────────────────────────────
+
+const matchCache = new Map();
+const CACHE_MAX = 10;
+
+function cacheKey(resumeText, jdText) {
+  // Lightweight fingerprint without storing full texts
+  const r = resumeText || '';
+  const j = jdText || '';
+  return `R${r.length}:${r.slice(0, 60)}:${r.slice(-30)}|J${j.length}:${j.slice(0, 60)}:${j.slice(-30)}`;
+}
+
+function cacheGet(resumeText, jdText) {
+  const entry = matchCache.get(cacheKey(resumeText, jdText));
+  if (entry) {
+    console.log('[Cache] 命中 — score:', entry.result.overallScore);
+    return entry.result;
+  }
+  return null;
+}
+
+function cacheSet(resumeText, jdText, result) {
+  const key = cacheKey(resumeText, jdText);
+  if (matchCache.size >= CACHE_MAX) {
+    // Evict oldest entry
+    const firstKey = matchCache.keys().next().value;
+    matchCache.delete(firstKey);
+  }
+  matchCache.set(key, { result, timestamp: Date.now() });
+  console.log('[Cache] 写入 — cache size:', matchCache.size);
+}
+
 // ─── Public API ──────────────────────────────────────────────────────
 
 /**
@@ -487,4 +679,40 @@ export async function matchResumeWithJD(resumeText, jdText, userApiKey) {
   }
 
   return callProxy(resumeText, jdText);
+}
+
+/**
+ * Match a resume against a job description with streaming progress updates.
+ *
+ * Uses Dify streaming SSE mode for real-time progress feedback.
+ * Also checks an in-memory cache to skip duplicate requests.
+ *
+ * @param {string} resumeText
+ * @param {string} jdText
+ * @param {string} userApiKey
+ * @param {{ onProgress: fn, signal?: AbortSignal }} callbacks
+ * @returns {Promise<object>} validated match result
+ */
+export async function matchResumeWithJDStreaming(resumeText, jdText, userApiKey, { onProgress, signal } = {}) {
+  // Check cache first
+  const cached = cacheGet(resumeText, jdText);
+  if (cached) {
+    // Simulate streaming progress for instant cache hits
+    onProgress?.({ stage: 'started', message: '从缓存加载...' });
+    onProgress?.({ stage: 'finished', message: '缓存命中，即刻呈现' });
+    return cached;
+  }
+
+  const directKey = userApiKey || import.meta.env.VITE_DIFY_API_KEY;
+
+  let result;
+  if (directKey) {
+    result = await callDifyStreaming(resumeText, jdText, directKey, { onProgress, signal });
+  } else {
+    result = await callProxyStreaming(resumeText, jdText, { onProgress, signal });
+  }
+
+  // Cache successful results
+  cacheSet(resumeText, jdText, result);
+  return result;
 }

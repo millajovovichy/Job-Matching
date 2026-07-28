@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 
-export default function MatchButton({ isLoading, onMatch, hasContent }) {
+export default function MatchButton({ isLoading, onMatch, onCancel, hasContent }) {
   const [showEmptyError, setShowEmptyError] = useState(false);
 
   useEffect(() => {
@@ -8,6 +8,10 @@ export default function MatchButton({ isLoading, onMatch, hasContent }) {
   }, [hasContent]);
 
   const handleClick = () => {
+    if (isLoading) {
+      onCancel?.();
+      return;
+    }
     if (!hasContent) {
       setShowEmptyError(true);
       return;
@@ -20,16 +24,15 @@ export default function MatchButton({ isLoading, onMatch, hasContent }) {
     <div className="text-center mb-8 stagger-2 animate-fade-in-up">
       <button
         onClick={handleClick}
-        disabled={isLoading}
-        className={`px-10 py-3 rounded-xl text-sm font-semibold transition-all duration-300 ring-1 ring-white/10
+        className={`px-10 py-3 rounded-xl text-sm font-semibold transition-all duration-300 ring-1
           ${isLoading
-            ? 'bg-indigo-500/60 text-white cursor-not-allowed shadow-none ring-0'
-            : 'bg-gradient-to-br from-indigo-500 to-violet-500 text-white hover:shadow-xl hover:shadow-indigo-500/30 hover:-translate-y-0.5 active:translate-y-0'
+            ? 'bg-red-500/10 border border-red-500/20 text-red-300 hover:bg-red-500/20 hover:text-red-200 ring-red-500/20'
+            : 'bg-gradient-to-br from-indigo-500 to-violet-500 text-white hover:shadow-xl hover:shadow-indigo-500/30 hover:-translate-y-0.5 active:translate-y-0 ring-white/10'
           }`}
       >
         {isLoading ? (
           <span className="flex items-center gap-2">
-            <i className="fas fa-spinner fa-spin"></i>分析中...
+            <i className="fas fa-stop"></i>取消分析
           </span>
         ) : (
           <span className="flex items-center gap-2">
