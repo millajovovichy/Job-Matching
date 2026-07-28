@@ -92,7 +92,7 @@ export default async function handler(req, context) {
 
     // ─── Streaming mode (SSE proxy) ─────────────────────────────────
     if (useStreaming) {
-      return handleStreaming(req, apiKey, ip, ipCount);
+      return handleStreaming(resumeText, jdText, apiKey, ip, ipCount);
     }
     // ────────────────────────────────────────────────────────────────
 
@@ -191,20 +191,7 @@ export default async function handler(req, context) {
 
 // ─── Streaming handler ────────────────────────────────────────────────
 
-async function handleStreaming(req, apiKey, ip, ipCount) {
-  let body;
-  try {
-    body = await req.json();
-  } catch {
-    return jsonResponse({ error: 'Invalid JSON body' }, 400);
-  }
-
-  const { resumeText, jdText } = body;
-
-  if (!resumeText || !jdText) {
-    return jsonResponse({ error: 'Missing resumeText or jdText' }, 400);
-  }
-
+async function handleStreaming(resumeText, jdText, apiKey, ip, ipCount) {
   // Call Dify in streaming mode
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 120000); // 120s for streaming
