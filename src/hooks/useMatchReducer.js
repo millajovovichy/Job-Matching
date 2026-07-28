@@ -16,6 +16,7 @@ const initialState = {
   isLoading: false,
   error: null,
   result: demoResult,
+  quota: null,
 };
 
 function reducer(state, action) {
@@ -26,14 +27,17 @@ function reducer(state, action) {
       return { ...state, jdText: action.payload };
     case ACTION_TYPES.START_MATCH:
       return { ...state, isLoading: true, error: null };
-    case ACTION_TYPES.MATCH_SUCCESS:
+    case ACTION_TYPES.MATCH_SUCCESS: {
+      const { quota, ...result } = action.payload;
       return {
         ...state,
         isLoading: false,
         isDemo: false,
-        result: action.payload,
+        result,
+        quota: quota || state.quota,
         error: null,
       };
+    }
     case ACTION_TYPES.MATCH_ERROR:
       return { ...state, isLoading: false, error: action.payload };
     default:

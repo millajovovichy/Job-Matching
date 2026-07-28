@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { matchResumeWithJD } from '../services/api';
 
 // Mock import.meta.env
-vi.stubEnv('VITE_DEEPSEEK_API_KEY', 'test-key-123');
+vi.stubEnv('VITE_DIFY_API_KEY', 'app-test-key-123');
 
 const mockResult = {
   overallScore: 78,
@@ -31,12 +31,16 @@ describe('matchResumeWithJD', () => {
     vi.restoreAllMocks();
   });
 
-  it('成功调用返回校验后的结果', async () => {
+  it('成功调用返回校验后的结果 (Dify workflow 响应格式)', async () => {
     fetch.mockResolvedValueOnce({
       ok: true,
       json: () =>
         Promise.resolve({
-          choices: [{ message: { content: JSON.stringify(mockResult) } }],
+          data: {
+            outputs: {
+              result: JSON.stringify(mockResult),
+            },
+          },
         }),
     });
 
@@ -45,14 +49,38 @@ describe('matchResumeWithJD', () => {
     expect(result.dimensions.projectExperience.score).toBe(82);
   });
 
-  it('API Key 缺失时抛出 API_KEY_MISSING', async () => {
-    // 临时清除环境变量
-    const originalKey = import.meta.env.VITE_DEEPSEEK_API_KEY;
-    import.meta.env.VITE_DEEPSEEK_API_KEY = '';
+  it('支持 Dify 输出 text 字段', async () => {
+    fetch.mockResolvedValueOnce({
+      ok: true,
+      json: () =>
+        Promise.resolve({
+          data: {
+            outputs: {
+              text: JSON.stringify(mockResult),
+            },
+          },
+        }),
+    });
 
-    await expect(matchResumeWithJD('简历', 'JD')).rejects.toThrow('API_KEY_MISSING');
+    const result = await matchResumeWithJD('简历文本', 'JD文本');
+    expect(result.overallScore).toBe(78);
+  });
 
-    import.meta.env.VITE_DEEPSEEK_API_KEY = originalKey;
+  it('支持 Dify 输出已解析的对象', async () => {
+    fetch.mockResolvedValueOnce({
+      ok: true,
+      json: () =>
+        Promise.resolve({
+          data: {
+            outputs: {
+              result: mockResult,
+            },
+          },
+        }),
+    });
+
+    const result = await matchResumeWithJD('简历文本', 'JD文本');
+    expect(result.overallScore).toBe(78);
   });
 
   it('401 响应抛出 API_KEY_INVALID', async () => {

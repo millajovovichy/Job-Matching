@@ -8,13 +8,15 @@ import ResultPanel from './components/ResultPanel';
 import ApiKeyModal from './components/ApiKeyModal';
 
 const ERROR_MESSAGES = {
-  API_KEY_MISSING: '请点击右上角 🔑 设置你的 DeepSeek API Key',
+  API_KEY_MISSING: '请点击右上角 🔑 设置你的 Dify API Key',
   API_KEY_INVALID: 'API Key 无效，请检查后重新设置',
   API_TIMEOUT: '请求超时，请检查网络后重试',
   API_RATE_LIMITED: '请求过于频繁，请稍后重试',
   API_NETWORK_ERROR: '网络连接失败，请检查网络',
   API_RESPONSE_EMPTY: 'API 返回为空，请重试',
   API_RESPONSE_NOT_JSON: '结果解析失败，请重试',
+  USAGE_LIMIT_REACHED: '试用次数已用完（总计 100 次），请联系作者',
+  IP_LIMIT_REACHED: '该设备试用次数已用完（每设备 10 次），请更换网络',
 };
 
 function AppContent() {
@@ -50,7 +52,7 @@ function AppContent() {
         className="border-b border-white/[0.06] px-6 h-14 flex items-center sticky top-0 z-20"
         style={{ background: 'rgba(3,7,18,0.85)', backdropFilter: 'blur(16px)' }}
       >
-        <Header isDemo={state.isDemo} />
+        <Header isDemo={state.isDemo} quota={state.quota} />
       </header>
 
       {/* 主内容 */}

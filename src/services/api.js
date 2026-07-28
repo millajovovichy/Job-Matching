@@ -1,6 +1,7 @@
-const DEEPSEEK_API_URL = 'https://api.deepseek.com/v1/chat/completions';
+const DIFY_API_BASE = import.meta.env.VITE_DIFY_API_BASE || 'https://api.dify.ai';
+const DIFY_WORKFLOW_URL = `${DIFY_API_BASE}/v1/workflows/run`;
 
-// ─── Prompt (shared between direct call and proxy) ────────────────────
+// ─── Prompt (保留供 Dify 工作流参考，实际 prompt 在工作流内配置) ────
 
 const SYSTEM_PROMPT = `你是一个专业的简历-岗位匹配评估系统。你的任务是分析候选人与岗位描述的匹配程度，并以严格的JSON格式输出结果。
 
@@ -246,26 +247,137 @@ function validateResult(data) {
   return data;
 }
 
-// ─── Direct DeepSeek call (dev with .env key, or user's own key) ────
+// ─── Workflow result mapping ──────────────────────────────────────────
 
-async function callDeepSeekDirect(resumeText, jdText, apiKey) {
+/**
+ * Parse the Dify workflow's raw text output into structured data.
+ *
+ * The workflow returns a multi-section text (not clean JSON):
+ *   匹配{...nested json...}
+ *   简历优化```json {...} ```
+ *   技能补足{...nested json...}
+ *
+ * Strategy: split by section keywords, then extract JSON from each part.
+ */
+function parseWorkflowOutput(rawText) {
+  // Try direct JSON parse first (backward compat / future structured output)
+  try { return JSON.parse(rawText); } catch { /* continue */ }
+
+  let matching = null;
+  let resumeSuggestions = [];
+  let skillSuggestions = [];
+
+  // ── 匹配 section: everything between "匹配" and next section keyword ──
+  const matchIdx = rawText.indexOf('匹配');
+  const optIdx = rawText.indexOf('简历优化');
+  if (matchIdx !== -1) {
+    // Find the end of the matching JSON (just before 简历优化 or 技能补足)
+    const endBoundary = [optIdx, rawText.indexOf('技能补足')]
+      .filter(i => i > matchIdx)
+      .reduce((min, i) => Math.min(min, i), rawText.length);
+    const section = rawText.substring(matchIdx + 2, endBoundary).trim();
+    try { matching = JSON.parse(section); } catch { /* skip */ }
+  }
+
+  // ── 简历优化 section: JSON inside ```json code fence, or raw JSON ──
+  const optStart = rawText.indexOf('简历优化');
+  const skillIdx = rawText.indexOf('技能补足');
+  if (optStart !== -1) {
+    const optEnd = skillIdx !== -1 && skillIdx > optStart ? skillIdx : rawText.length;
+    const optSection = rawText.substring(optStart, optEnd);
+
+    // Try code fence format first: ```json {...} ```
+    const codeBlock = optSection.match(/```json\s*([\s\S]*?)\s*```/);
+    if (codeBlock) {
+      try {
+        const opt = JSON.parse(codeBlock[1]);
+        resumeSuggestions = opt.suggestions || [];
+      } catch { /* skip */ }
+    } else {
+      // Try raw JSON format: 简历优化{...}
+      const rawJson = optSection.match(/简历优化\s*(\{[\s\S]*)/);
+      if (rawJson) {
+        const jsonStr = rawJson[1];
+        // Find matching closing brace
+        let depth = 0, end = 0;
+        for (let i = 0; i < jsonStr.length; i++) {
+          if (jsonStr[i] === '{') depth++;
+          if (jsonStr[i] === '}') depth--;
+          if (depth === 0) { end = i + 1; break; }
+        }
+        try {
+          const opt = JSON.parse(jsonStr.substring(0, end));
+          resumeSuggestions = opt.suggestions || [];
+        } catch { /* skip */ }
+      }
+    }
+  }
+
+  // ── 技能补足 section: everything after "技能补足" ──
+  if (skillIdx !== -1) {
+    const section = rawText.substring(skillIdx + 4).trim();
+    // Try to find and parse the JSON object (handles nested braces)
+    const braceStart = section.indexOf('{');
+    if (braceStart !== -1) {
+      // Count braces to find matching closing brace
+      let depth = 0;
+      let end = braceStart;
+      for (let i = braceStart; i < section.length; i++) {
+        if (section[i] === '{') depth++;
+        if (section[i] === '}') depth--;
+        if (depth === 0) { end = i + 1; break; }
+      }
+      try {
+        const skills = JSON.parse(section.substring(braceStart, end));
+        skillSuggestions = skills.skillSuggestions || [];
+      } catch { /* skip */ }
+    }
+  }
+
+  if (matching) {
+    return { ...matching, resumeSuggestions, skillSuggestions };
+  }
+
+  throw new Error('API_RESPONSE_NOT_JSON');
+}
+
+/**
+ * Map Dify workflow output to flat format expected by UI.
+ *
+ * Handles two formats:
+ *   1. Structured: { matching: {...}, resumeOptimization: { suggestions: [...] }, ... }
+ *   2. Old flat format: { overallScore, dimensions, ... }
+ */
+function mapWorkflowResult(data) {
+  if (data.matching && typeof data.matching === 'object') {
+    return {
+      ...data.matching,
+      resumeSuggestions: data.resumeOptimization?.suggestions || [],
+      skillSuggestions: data.skillSuggestions?.skillSuggestions || data.matching.skillSuggestions || [],
+    };
+  }
+  // Old flat format — pass through
+  return data;
+}
+
+// ─── Direct Dify call (dev with .env key, or user's own key) ────────
+
+async function callDifyDirect(resumeText, jdText, apiKey) {
+  console.log('[Dify] 开始调用 — key:', apiKey?.substring(0, 8) + '...', '| resume chars:', resumeText?.length, '| JD chars:', jdText?.length);
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 30000);
+  const timeoutId = setTimeout(() => controller.abort(), 60000);
 
   try {
-    const response = await fetch(DEEPSEEK_API_URL, {
+    const response = await fetch(DIFY_WORKFLOW_URL, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
-        model: 'deepseek-chat',
-        messages: [
-          { role: 'user', content: buildPrompt(resumeText, jdText) },
-        ],
-        temperature: 0.3,
-        response_format: { type: 'json_object' },
+        inputs: { resume: resumeText, JD: jdText },
+        response_mode: 'blocking',
+        user: 'resume-jd-matcher',
       }),
       signal: controller.signal,
     });
@@ -279,12 +391,35 @@ async function callDeepSeekDirect(resumeText, jdText, apiKey) {
     }
 
     const json = await response.json();
-    const content = json.choices?.[0]?.message?.content;
-    if (!content) throw new Error('API_RESPONSE_EMPTY');
+    // Dify workflow response: { data: { outputs: { ... } } }
+    const outputs = json.data?.outputs;
+    if (!outputs) throw new Error('API_RESPONSE_EMPTY');
 
-    return validateResult(parseResponse(content));
+    // 工作流输出可能是 JSON 字符串或已解析的对象
+    const result = outputs.result || outputs.text || outputs.output || outputs.json
+      || Object.values(outputs).find(v => typeof v === 'string' || typeof v === 'object');
+    if (!result) throw new Error('API_RESPONSE_EMPTY');
+
+    let parsed;
+    if (typeof result === 'string') {
+      // 检测多段文本格式（匹配/简历优化/技能补足）
+      if (/^(匹配|简历优化|技能补足)/m.test(result.trim())) {
+        parsed = parseWorkflowOutput(result);
+      } else {
+        parsed = parseResponse(result);
+      }
+    } else {
+      parsed = result;
+    }
+    if (!parsed || typeof parsed !== 'object') throw new Error('API_RESPONSE_NOT_JSON');
+
+    const mapped = mapWorkflowResult(parsed);
+    const validated = validateResult(mapped);
+    console.log('[Dify] 调用成功 — score:', validated.overallScore, '| resumeSug:', validated.resumeSuggestions?.length, '| skillSug:', validated.skillSuggestions?.length);
+    return validated;
   } catch (err) {
     clearTimeout(timeoutId);
+    console.error('[Dify] 调用失败:', err.message, '| name:', err.name, '| stack:', err.stack?.substring(0, 200));
     if (err.name === 'AbortError') throw new Error('API_TIMEOUT');
     if (err.message.startsWith('API_')) throw err;
     throw new Error('API_NETWORK_ERROR');
@@ -295,7 +430,7 @@ async function callDeepSeekDirect(resumeText, jdText, apiKey) {
 
 async function callProxy(resumeText, jdText) {
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 35000);
+  const timeoutId = setTimeout(() => controller.abort(), 65000);
 
   try {
     const response = await fetch('/api/match', {
@@ -313,11 +448,16 @@ async function callProxy(resumeText, jdText) {
       if (error === 'API_KEY_INVALID') throw new Error('API_KEY_INVALID');
       if (error === 'API_RATE_LIMITED') throw new Error('API_RATE_LIMITED');
       if (error === 'API_TIMEOUT') throw new Error('API_TIMEOUT');
+      if (error === 'USAGE_LIMIT_REACHED') throw new Error('USAGE_LIMIT_REACHED');
+      if (error === 'IP_LIMIT_REACHED') throw new Error('IP_LIMIT_REACHED');
       throw new Error(error);
     }
 
     const data = await response.json();
-    return validateResult(data);
+    const { quota, ...matchingData } = data;
+    const validated = validateResult(matchingData);
+    if (quota) validated.quota = quota;
+    return validated;
   } catch (err) {
     clearTimeout(timeoutId);
     if (err.name === 'AbortError') throw new Error('API_TIMEOUT');
@@ -332,16 +472,16 @@ async function callProxy(resumeText, jdText) {
  * Match a resume against a job description.
  *
  * Resolution order:
- *   1. userApiKey provided → call DeepSeek directly with user's own key
- *   2. VITE_DEEPSEEK_API_KEY env var set → call DeepSeek directly (dev mode)
+ *   1. userApiKey provided → call Dify directly with user's own key
+ *   2. VITE_DIFY_API_KEY env var set → call Dify directly (dev mode)
  *   3. Neither → POST /api/match server proxy (production — Netlify Function
- *      uses server-side DEEPSEEK_API_KEY)
+ *      uses server-side DIFY_API_KEY)
  */
 export async function matchResumeWithJD(resumeText, jdText, userApiKey) {
-  const directKey = userApiKey || import.meta.env.VITE_DEEPSEEK_API_KEY;
+  const directKey = userApiKey || import.meta.env.VITE_DIFY_API_KEY;
 
   if (directKey) {
-    return callDeepSeekDirect(resumeText, jdText, directKey);
+    return callDifyDirect(resumeText, jdText, directKey);
   }
 
   return callProxy(resumeText, jdText);

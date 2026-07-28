@@ -1,6 +1,6 @@
 import { useApiKey } from '../contexts/ApiKeyContext';
 
-export default function Header({ isDemo }) {
+export default function Header({ isDemo, quota }) {
   const { openSettings, apiKey } = useApiKey();
 
   return (
@@ -13,6 +13,21 @@ export default function Header({ isDemo }) {
       </h1>
 
       <div className="flex items-center gap-2">
+        {/* 剩余调用次数 */}
+        {quota && (
+          <span
+            className={`text-xs px-3 py-1 rounded-full font-medium border flex items-center gap-1.5 ${
+              quota.totalRemaining <= 10
+                ? 'bg-red-500/10 text-red-400 border-red-500/20'
+                : 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20'
+            }`}
+            title={`总剩余 ${quota.totalRemaining}/${quota.totalLimit} · 本设备剩余 ${quota.ipRemaining}/${quota.ipLimit}`}
+          >
+            <i className="fas fa-gauge-high text-[10px]"></i>
+            {quota.totalRemaining}/{quota.totalLimit}
+          </span>
+        )}
+
         {/* API Key 设置按钮 */}
         <button
           onClick={openSettings}

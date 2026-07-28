@@ -10,7 +10,7 @@ vi.mock('pdfjs-dist', () => ({
 }));
 
 // Mock env for API key so matchResumeWithJD doesn't throw API_KEY_MISSING
-vi.stubEnv('VITE_DEEPSEEK_API_KEY', 'test-key-for-integration');
+vi.stubEnv('VITE_DIFY_API_KEY', 'app-test-key-for-integration');
 
 describe('App 集成测试', () => {
   beforeEach(() => {
@@ -73,7 +73,11 @@ describe('App 集成测试', () => {
       ok: true,
       json: () =>
         Promise.resolve({
-          choices: [{ message: { content: JSON.stringify(mockAPIResult) } }],
+          data: {
+            outputs: {
+              result: JSON.stringify(mockAPIResult),
+            },
+          },
         }),
     });
 

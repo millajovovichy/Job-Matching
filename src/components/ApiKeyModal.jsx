@@ -27,7 +27,7 @@ export default function ApiKeyModal() {
   };
 
   const isEnvKey = (() => {
-    try { return !!import.meta.env.VITE_DEEPSEEK_API_KEY; } catch { return false; }
+    try { return !!import.meta.env.VITE_DIFY_API_KEY; } catch { return false; }
   })();
 
   return (
@@ -58,7 +58,7 @@ export default function ApiKeyModal() {
         ) : (
           <>
             <p className="text-xs text-white/50 mb-4 leading-relaxed">
-              请输入你的 <a href="https://platform.deepseek.com/api_keys" target="_blank" rel="noopener noreferrer" className="text-indigo-400 hover:text-indigo-300 underline underline-offset-2">DeepSeek API Key</a>。
+              请输入你的 <a href="https://cloud.dify.ai" target="_blank" rel="noopener noreferrer" className="text-indigo-400 hover:text-indigo-300 underline underline-offset-2">Dify API Key</a>（格式：app-...）。
               Key 仅保存在你的浏览器本地，不会上传到任何服务器。
             </p>
 
@@ -68,7 +68,7 @@ export default function ApiKeyModal() {
                 value={draft}
                 onChange={(e) => setDraft(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleSave()}
-                placeholder="sk-..."
+                placeholder="app-..."
                 autoFocus
                 className="w-full h-11 bg-white/[0.06] rounded-xl px-4 pr-10 text-sm text-white placeholder:text-white/20
                            focus:outline-none focus:ring-2 focus:ring-indigo-500/30 border border-transparent transition-all"

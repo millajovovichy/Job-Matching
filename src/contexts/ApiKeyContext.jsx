@@ -2,7 +2,7 @@ import { createContext, useContext, useState, useEffect, useCallback } from 'rea
 
 const ApiKeyContext = createContext(null);
 
-const STORAGE_KEY = 'deepseek_api_key';
+const STORAGE_KEY = 'dify_api_key';
 
 function getStoredKey() {
   try {
@@ -15,7 +15,7 @@ function getStoredKey() {
 function getEnvKey() {
   // Vite injects import.meta.env at build time
   try {
-    return import.meta.env.VITE_DEEPSEEK_API_KEY || '';
+    return import.meta.env.VITE_DIFY_API_KEY || '';
   } catch {
     return '';
   }
